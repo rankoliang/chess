@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
+require_relative 'chess_config'
+
 # Contains information on the board state
 class Board < Array
   def initialize
-    replace(Array.new(8) { Array.new(8) })
+    # Initializes the board to be an array
+    replace(Array.new(ChessConfig::BOARD_HEIGHT) do
+      Array.new(ChessConfig::BOARD_WIDTH)
+    end)
   end
 
   def to_s
@@ -25,4 +30,3 @@ class Board < Array
     puts to_s
   end
 end
-
