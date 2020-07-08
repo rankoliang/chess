@@ -17,11 +17,19 @@ class Board < Array
     [width, height]
   end
 
+  def self.chess_notation(column_index, row_index)
+    return if column_index >= ChessConfig::BOARD_WIDTH ||
+              row_index >= ChessConfig::BOARD_HEIGHT
+
+    column = (column_index + 'a'.ord).chr
+    "#{column}#{row_index + 1}"
+  end
+
   # returns the chess piece at a certain position matching the format /[a..z]\d/
   def at(position)
     column = position[0].downcase
     row = position[1]
-    column_index = column.ord - 97
+    column_index = column.ord - 'a'.ord
     row_index = row.to_i - 1
 
     self[row_index][column_index]
@@ -56,5 +64,3 @@ class Board < Array
     "#{ChessConfig::BOARD_HEIGHT - row_index} #{row_of_pieces}"
   end
 end
-
-Board.new.draw

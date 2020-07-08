@@ -52,4 +52,24 @@ describe Board do
       it { expect(board.at(position)).to be_nil }
     end
   end
+
+  describe '.chess_notation' do
+    subject(:chess_notation) { described_class.chess_notation(column, row) }
+
+    describe 'when the indices are valid' do
+      let(:column) { 0 }
+      let(:row) { 0 }
+
+      it 'converts the given indices to chess notation' do
+        expect(chess_notation).to eq 'a1'
+      end
+    end
+
+    describe 'when the indices are not valid' do
+      let(:column) { ChessConfig::BOARD_WIDTH + 1 }
+      let(:row) { ChessConfig::BOARD_HEIGHT + 1 }
+
+      it { expect(chess_notation).to be_nil }
+    end
+  end
 end
