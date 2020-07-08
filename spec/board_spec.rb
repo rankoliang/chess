@@ -6,7 +6,7 @@ describe Board do
   describe '.size' do
     subject(:board_size) { described_class.new.size }
 
-    context 'when the board is standard' do
+    context 'when the board is standard a standard size' do
       let(:width) { ChessConfig::BOARD_WIDTH }
       let(:height) { ChessConfig::BOARD_HEIGHT }
 
@@ -18,16 +18,8 @@ describe Board do
     subject(:board) { described_class.new }
 
     before do
-      board.replace([
-                      [1, 2, 3, 4, 5, 6, 7],
-                      [8,  9,  10, 11, 12, 13, 14],
-                      [15, 16, 17, 18, 19, 20, 21],
-                      [22, 23, 24, 25, 26, 27, 28],
-                      [29, 30, 31, 32, 33, 34, 35],
-                      [36, 37, 38, 39, 40, 41, 42],
-                      [43, 44, 45, 46, 47, 48, 56],
-                      [50, 51, 52, 53, 54, 55, 63]
-                    ])
+      # set 'c4' to 24
+      board[3][2] = 24
     end
 
     context 'when a position is given' do
