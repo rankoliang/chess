@@ -11,6 +11,12 @@ class Board < Array
     end)
   end
 
+  def size
+    height = super
+    width = self[0].size
+    [width, height]
+  end
+
   def to_s
     # Draws from the bottom to up
     board_display = reverse.map.with_index do |row, row_index|
@@ -40,6 +46,3 @@ class Board < Array
     "#{row_index} #{row_of_pieces}"
   end
 end
-
-board = Board.new
-board.draw
