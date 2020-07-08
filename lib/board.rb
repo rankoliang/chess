@@ -13,20 +13,33 @@ class Board < Array
 
   def to_s
     # Draws from the bottom to up
-    reverse.map.with_index do |row, row_index|
-      row.map.with_index do |piece, column_index|
-        background_shade = (row_index + column_index) % 2
+    board_display = reverse.map.with_index do |row, row_index|
+      self.class.row_to_s(row_index, row)
+    end.join("\n")
 
-        # Display an empty space by default
-        piece = ' ' if piece.nil?
-
-        # Draws the piece. Alternates between a blue and black background
-        "\e[#{40 + background_shade * 4}m#{piece}\e[0m"
-      end.join
-    end
+    column_labels = ('a'..'z').to_a[0...ChessConfig::BOARD_WIDTH]
+    column_header = "   #{column_labels.join('  ')}"
+    "#{column_header}\n#{board_display}"
   end
 
   def draw
     puts to_s
   end
+
+  def self.row_to_s(row_index, row)
+    row_of_pieces = row.map.with_index do |piece, column_index|
+      background_shade = (row_index + column_index) % 2
+
+      # Display an empty space by default
+      piece = ' ' if piece.nil?
+
+      # Draws the piece. Alternates between a blue and black background
+      "\e[#{40 + background_shade * 4}m #{piece} \e[0m"
+    end.join
+
+    "#{row_index} #{row_of_pieces}"
+  end
 end
+
+board = Board.new
+board.draw
