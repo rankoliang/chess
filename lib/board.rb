@@ -17,6 +17,16 @@ class Board < Array
     [width, height]
   end
 
+  # returns the chess piece at a certain position matching the format /[a..z]\d/
+  def at(position)
+    column = position[0].downcase
+    row = position[1]
+    column_index = column.ord - 97
+    row_index = row.to_i - 1
+
+    self[row_index][column_index]
+  end
+
   def to_s
     # Draws from the bottom to up
     board_display = reverse.map.with_index do |row, row_index|
@@ -43,6 +53,8 @@ class Board < Array
       "\e[#{40 + background_shade * 4}m #{piece} \e[0m"
     end.join
 
-    "#{row_index} #{row_of_pieces}"
+    "#{ChessConfig::BOARD_HEIGHT - row_index} #{row_of_pieces}"
   end
 end
+
+Board.new.draw

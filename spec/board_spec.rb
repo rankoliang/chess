@@ -3,7 +3,7 @@
 require_relative '../lib/board.rb'
 
 describe Board do
-  describe '#size' do
+  describe '.size' do
     subject(:board_size) { described_class.new.size }
 
     context 'when the board is standard' do
@@ -11,6 +11,45 @@ describe Board do
       let(:height) { ChessConfig::BOARD_HEIGHT }
 
       it { expect(board_size).to eq [width, height] }
+    end
+  end
+
+  describe '#at' do
+    subject(:board) { described_class.new }
+
+    before do
+      board.replace([
+                      [1, 2, 3, 4, 5, 6, 7],
+                      [8,  9,  10, 11, 12, 13, 14],
+                      [15, 16, 17, 18, 19, 20, 21],
+                      [22, 23, 24, 25, 26, 27, 28],
+                      [29, 30, 31, 32, 33, 34, 35],
+                      [36, 37, 38, 39, 40, 41, 42],
+                      [43, 44, 45, 46, 47, 48, 56],
+                      [50, 51, 52, 53, 54, 55, 63]
+                    ])
+    end
+
+    context 'when a position is given' do
+      let(:position) { 'c4' }
+
+      it 'will return the correct piece' do
+        expect(board.at(position)).to eq 24
+      end
+    end
+
+    context 'when the column is uppercase' do
+      let(:position) { 'C4' }
+
+      it 'will return the correct piece' do
+        expect(board.at(position)).to eq 24
+      end
+    end
+
+    context 'when the position is out of bounds' do
+      let(:position) { 'Z8' }
+
+      it { expect(board.at(position)).to be_nil }
     end
   end
 end
