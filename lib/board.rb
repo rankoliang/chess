@@ -3,16 +3,22 @@
 require_relative 'chess_config'
 
 # Contains information on the board state
-class Board < Array
+class Board
+  attr_reader :board_array
+
   def initialize
     # Initializes the board to be an array
-    replace(Array.new(ChessConfig::BOARD_HEIGHT) do
+    self.board_array = Array.new(ChessConfig::BOARD_HEIGHT) do
       Array.new(ChessConfig::BOARD_WIDTH)
-    end)
+    end
+  end
+
+  def [](index)
+    board_array[index]
   end
 
   def size
-    height = super
+    height = board_array.size
     width = self[0].size
     [width, height]
   end
@@ -50,6 +56,10 @@ class Board < Array
     puts to_s
   end
 
+  def to_ary
+    board_array
+  end
+
   def self.row_to_s(row_index, row)
     row_of_pieces = row.map.with_index do |piece, column_index|
       background_shade = (row_index + column_index) % 2
@@ -63,4 +73,8 @@ class Board < Array
 
     "#{ChessConfig::BOARD_HEIGHT - row_index} #{row_of_pieces}"
   end
+
+  private
+
+  attr_writer :board_array
 end
