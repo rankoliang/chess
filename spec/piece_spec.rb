@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 require_relative('../lib/piece')
+require_relative('../lib/chess_config.rb')
 
 RSpec.describe Piece do
   describe '#to_s' do
     subject(:piece) { Piece.new }
 
-    it { expect(piece.to_s).to eq '?' }
+    it { expect(piece.to_s).to eq ChessConfig::PIECE_SYMBOLS[:default] }
   end
 
   describe '#position' do
