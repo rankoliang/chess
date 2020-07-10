@@ -78,12 +78,19 @@ class Board
   attr_writer :board_array
   attr_accessor :board_bg
 
+  # Overrides the default background colors
+  def hl_space(color, column_index, row_index)
+    board_bg[row_index][column_index] = color if ChessConfig::COLOR_CODES.key?(color)
+  end
+
+  # colors the background of the chess board to be alternating
   def reset_background
     self.board_bg = board_array.map.with_index do |row, row_index|
       self.class.row_background(row, row_index)
     end
   end
 
+  # Highlights each element of the row to alternate colors
   def self.row_background(row, row_index)
     row.each_index.map do |column_index|
       (row_index + column_index).even? ? :black : :blue
