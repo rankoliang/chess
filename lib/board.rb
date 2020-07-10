@@ -51,11 +51,7 @@ class Board
 
   # returns the chess piece at a certain position matching the format /[a..z]\d/
   def at(position)
-    column = position[0].downcase
-    row = position[1]
-    column_index = column.ord - 'a'.ord
-    row_index = row.to_i - 1
-
+    column_index, row_index = self.class.notation_to_coord(position)
     self[row_index][column_index]
   end
   class << self
@@ -70,6 +66,14 @@ class Board
 
       column = (column_index + 'a'.ord).chr
       "#{column}#{row_index + 1}"
+    end
+
+    def notation_to_coord(position)
+      column = position[0].downcase
+      row = position[1]
+      column_index = column.ord - 'a'.ord
+      row_index = row.to_i - 1
+      [column_index, row_index]
     end
   end
 

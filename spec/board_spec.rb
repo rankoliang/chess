@@ -2,7 +2,7 @@
 
 require_relative '../lib/board.rb'
 
-describe Board do
+RSpec.describe Board do
   describe '.size' do
     subject(:board_size) { described_class.new.size }
 
