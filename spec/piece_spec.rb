@@ -1,0 +1,33 @@
+# frozen_string_literal: true
+
+require_relative('../lib/piece')
+
+RSpec.describe Piece do
+  describe '#to_s' do
+    subject(:piece) { Piece.new }
+
+    it { expect(piece.to_s).to eq '?' }
+  end
+
+  describe '#position' do
+    context 'when a position is not given' do
+      subject(:piece) { Piece.new }
+
+      it { expect(piece.position).to be_nil }
+    end
+
+    context 'when a position is given' do
+      subject(:piece) { Piece.new([0, 1]) }
+
+      it { expect(piece.position).to eq [0, 1] }
+    end
+  end
+
+  describe '.from_chess_notation' do
+    subject(:piece) { Piece.from_chess_notation('B1') }
+
+    it 'returns a piece with an array position' do
+      expect(piece.position).to eq [1, 0]
+    end
+  end
+end
