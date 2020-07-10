@@ -17,14 +17,14 @@ RSpec.describe Piece do
     end
 
     context 'when a position is given' do
-      subject(:piece) { Piece.new([0, 1]) }
+      subject(:piece) { Piece.new(position: [0, 1]) }
 
       it { expect(piece.position).to eq [0, 1] }
     end
   end
 
   describe '.from_chess_notation' do
-    subject(:piece) { Piece.from_chess_notation('B1') }
+    subject(:piece) { Piece.from_chess_notation(position: 'B1') }
 
     it 'returns a piece with an array position' do
       expect(piece.position).to eq [1, 0]
