@@ -20,8 +20,8 @@ class Piece
     default_symbol
   end
 
-  def self.from_chess_notation(position:, player: nil)
-    new(position: Board.notation_to_coord(position), player: player)
+  def self.from_chess_notation(position_cn:, player: nil)
+    new(position: Board.notation_to_coord(position_cn), player: player)
   end
 
   private

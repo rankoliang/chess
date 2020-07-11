@@ -49,9 +49,16 @@ class Board
     [width, height]
   end
 
+  # Highlights each element of the row to alternate colors
+  def self.row_background(row, row_index)
+    row.each_index.map do |column_index|
+      (row_index + column_index).even? ? :black : :blue
+    end
+  end
+
   # returns the chess piece at a certain position matching the format /[a..z]\d/
-  def at(position)
-    column_index, row_index = self.class.notation_to_coord(position)
+  def at(position_cn)
+    column_index, row_index = self.class.notation_to_coord(position_cn)
     self[row_index][column_index]
   end
   class << self
@@ -68,9 +75,9 @@ class Board
       "#{column}#{row_index + 1}"
     end
 
-    def notation_to_coord(position)
-      column = position[0].downcase
-      row = position[1]
+    def notation_to_coord(position_cn)
+      column = position_cn[0].downcase
+      row = position_cn[1]
       column_index = column.ord - 'a'.ord
       row_index = row.to_i - 1
       [column_index, row_index]
@@ -91,13 +98,6 @@ class Board
   def reset_background
     self.board_bg = board_array.map.with_index do |row, row_index|
       self.class.row_background(row, row_index)
-    end
-  end
-
-  # Highlights each element of the row to alternate colors
-  def self.row_background(row, row_index)
-    row.each_index.map do |column_index|
-      (row_index + column_index).even? ? :black : :blue
     end
   end
 end
