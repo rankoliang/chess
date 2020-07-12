@@ -22,7 +22,7 @@ class ChessBoard < Board
     return unless value
 
     pieces.delete(value.position)
-    pieces[position]
+    pieces[position] = value
   end
 
   private
