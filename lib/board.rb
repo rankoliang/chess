@@ -71,6 +71,14 @@ class Board
     self[row_index][column_index] = value
   end
 
+  # method moves a piece to a new space. The piece position is not updated
+  def move_piece(to, piece)
+    from = piece.position
+    set(from, nil) if from
+    yield at(to) if block_given?
+    set(to, piece)
+  end
+
   class << self
     def str_w_bg(string, bg_color)
       color_code = ChessConfig::COLOR_CODES[bg_color]

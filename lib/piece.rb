@@ -7,9 +7,10 @@ require_relative 'chess_config'
 class Piece
   attr_reader :position, :player
   # position is an array in the format [column_index, row_index]
-  def initialize(position: nil, player: nil)
+  def initialize(position: nil, player: nil, board: nil)
     self.position = position
     self.player = player
+    self.board = board
   end
 
   # Outputs the piece's unicode character
@@ -20,11 +21,14 @@ class Piece
     default_symbol
   end
 
-  def self.from_chess_notation(position_cn:, player: nil)
-    new(position: Board.notation_to_coord(position_cn), player: player)
+  # Moves a piece to any space with no restrictions
+  def move(new_position)
+    board.move_piece(new_position, self)
+    self.position = new_position
   end
 
   private
 
-  attr_writer :position, :player
+  attr_reader :board
+  attr_writer :position, :player, :board
 end

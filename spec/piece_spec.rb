@@ -2,6 +2,7 @@
 
 require_relative('../lib/piece')
 require_relative('../lib/chess_config.rb')
+require_relative('../lib/board.rb')
 
 RSpec.describe Piece do
   describe '#to_s' do
@@ -18,17 +19,48 @@ RSpec.describe Piece do
     end
 
     context 'when a position is given' do
-      subject(:piece) { described_class.new(position: [0, 1]) }
+      subject(:piece) { described_class.new(position: 'B1') }
 
-      it { expect(piece.position).to eq [0, 1] }
+      it { expect(piece.position).to eq 'B1' }
     end
   end
 
-  describe '.from_chess_notation' do
-    subject(:piece) { described_class.from_chess_notation(position_cn: 'B1') }
+  describe '#move' do
+    subject(:piece) { described_class.new(position: original_position, board: board) }
 
-    it 'returns a piece with an array position' do
-      expect(piece.position).to eq [1, 0]
+    shared_examples 'position changes' do
+      it {
+        expect { piece.move(new_position) }.to change(piece, :position)
+          .from(original_position).to new_position
+      }
+    end
+    context 'when the piece is not on the board' do
+      let(:original_position) { nil }
+      let(:new_position) { 'D5' }
+      let(:board) { Board.new }
+
+      it do
+        expect { piece.move(new_position) }
+          .to(change { board.at(new_position) }.from(nil).to(piece))
+      end
+
+      include_examples 'position changes'
+    end
+
+    context 'when the piece is already on the board' do
+      let(:original_position) { 'B1' }
+      let(:new_position) { 'D5' }
+      let(:board) { Board.new }
+
+      before { board.set(original_position, piece) }
+
+      it do
+        expect { piece.move(new_position) }
+          .to(change { board.at(original_position) }.from(piece).to(nil)
+          .and(change { board.at(new_position) }.from(nil).to(piece)))
+      end
+
+      include_examples 'position changes'
     end
   end
 end
