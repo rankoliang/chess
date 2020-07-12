@@ -18,4 +18,18 @@ module ChessConfig
                              Knight: "\u2658",
                              Pawn: "\u2659" },
                     default: '?' }.freeze
+  COLUMN_LABELS = ('a'..'z').to_a[0...ChessConfig::BOARD_WIDTH]
+  DEFAULT_LOCATIONS = { white: { Pawn: COLUMN_LABELS.map { |letter| "#{letter}2" },
+                                 King: %w[e1],
+                                 Queen: %w[d1],
+                                 Bishop: %w[c1 f1],
+                                 Knight: %w[b1 g1],
+                                 Rook: %w[a1 h1] },
+                        black: { Pawn: COLUMN_LABELS.map { |letter| "#{letter}7" },
+                                 King: %w[e8],
+                                 Queen: %w[d8],
+                                 Bishop: %w[c8 f8],
+                                 Knight: %w[b8 g8],
+                                 Rook: %w[a8 h8] } }.freeze
+  def pawn_locations(row); end
 end

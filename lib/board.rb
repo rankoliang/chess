@@ -25,8 +25,8 @@ class Board
       row_to_s(row_index, row)
     end.join("\n")
 
-    column_labels = ('a'..'z').to_a[0...ChessConfig::BOARD_WIDTH]
-    column_header = "   #{column_labels.join('  ')}"
+    # column_labels = ('a'..'z').to_a[0...ChessConfig::BOARD_WIDTH]
+    column_header = "   #{ChessConfig::COLUMN_LABELS.join('  ')}"
     "#{column_header}\n#{board_display}"
   end
 

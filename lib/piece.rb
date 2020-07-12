@@ -20,7 +20,7 @@ class Piece
   # Outputs the piece's unicode character
   def to_s
     default_symbol = ChessConfig::PIECE_SYMBOLS[:default]
-    ChessConfig::PIECE_SYMBOLS[player][self.class.to_s.to_sym] || default_symbol
+    ChessConfig::PIECE_SYMBOLS[player][type] || default_symbol
   rescue NoMethodError
     default_symbol
   end
@@ -37,4 +37,8 @@ class Piece
 
   attr_reader :board
   attr_writer :position, :player, :board
+
+  def type
+    self.class.to_s.split('::').last.to_sym
+  end
 end
