@@ -57,15 +57,15 @@ class Board
   end
 
   # returns the chess piece at a certain position matching the format /[a..z]\d/
-  def at(position_cn)
-    column_index, row_index = self.class.notation_to_coord(position_cn)
+  def at(position)
+    column_index, row_index = self.class.notation_to_coord(position)
     return unless column_index && row_index
 
     self[row_index][column_index]
   end
 
-  def set(position_cn, value)
-    column_index, row_index = self.class.notation_to_coord(position_cn)
+  def set(position, value)
+    column_index, row_index = self.class.notation_to_coord(position)
     return unless column_index && row_index
 
     self[row_index][column_index] = value
@@ -84,9 +84,9 @@ class Board
       "#{column}#{row_index + 1}"
     end
 
-    def notation_to_coord(position_cn)
-      column_index = position_cn[0].downcase.ord - 'a'.ord
-      row_index = position_cn[1].to_i - 1
+    def notation_to_coord(position)
+      column_index = position[0].downcase.ord - 'a'.ord
+      row_index = position[1].to_i - 1
       check_boundaries(column_index, row_index)
 
       [column_index, row_index]

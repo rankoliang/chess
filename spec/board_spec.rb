@@ -71,10 +71,10 @@ RSpec.describe Board do
     context 'when given a valid position' do
       let(:piece) { instance_double('piece') }
 
-      let(:position_cn) { 'B4' }
+      let(:position) { 'B4' }
 
       it 'changes the board' do
-        expect { board.set(position_cn, piece) }.to change { board.at(position_cn) }
+        expect { board.set(position, piece) }.to change { board.at(position) }
           .from(nil).to piece
       end
     end
@@ -82,10 +82,10 @@ RSpec.describe Board do
     context 'when given an invalid position' do
       let(:piece) { instance_double('piece') }
 
-      let(:position_cn) { 'K9' }
+      let(:position) { 'K9' }
 
       it 'changes the board' do
-        expect { board.set(position_cn, piece) }.to raise_error IndexError, 'Out of bounds!'
+        expect { board.set(position, piece) }.to raise_error IndexError, 'Out of bounds!'
       end
     end
   end
