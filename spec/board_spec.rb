@@ -41,7 +41,7 @@ RSpec.describe Board do
     context 'when the position is out of bounds' do
       let(:position) { 'Z8' }
 
-      it { expect(board.at(position)).to be_nil }
+      it { expect { board.at(position) }.to raise_error IndexError, 'Out of bounds!' }
     end
   end
 
@@ -61,7 +61,32 @@ RSpec.describe Board do
       let(:column) { ChessConfig::BOARD_WIDTH + 1 }
       let(:row) { ChessConfig::BOARD_HEIGHT + 1 }
 
-      it { expect(chess_notation).to be_nil }
+      it { expect { chess_notation }.to raise_error IndexError, 'Out of bounds!' }
+    end
+  end
+
+  describe '#set' do
+    subject(:board) { described_class.new }
+
+    context 'when given a valid position' do
+      let(:piece) { instance_double('piece') }
+
+      let(:position_cn) { 'B4' }
+
+      it 'changes the board' do
+        expect { board.set(position_cn, piece) }.to change { board.at(position_cn) }
+          .from(nil).to piece
+      end
+    end
+
+    context 'when given an invalid position' do
+      let(:piece) { instance_double('piece') }
+
+      let(:position_cn) { 'K9' }
+
+      it 'changes the board' do
+        expect { board.set(position_cn, piece) }.to raise_error IndexError, 'Out of bounds!'
+      end
     end
   end
 end

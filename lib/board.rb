@@ -59,8 +59,18 @@ class Board
   # returns the chess piece at a certain position matching the format /[a..z]\d/
   def at(position_cn)
     column_index, row_index = self.class.notation_to_coord(position_cn)
+    return unless column_index && row_index
+
     self[row_index][column_index]
   end
+
+  def set(position_cn, value)
+    column_index, row_index = self.class.notation_to_coord(position_cn)
+    return unless column_index && row_index
+
+    self[row_index][column_index] = value
+  end
+
   class << self
     def str_w_bg(string, bg_color)
       color_code = ChessConfig::COLOR_CODES[bg_color]
@@ -68,19 +78,27 @@ class Board
     end
 
     def chess_notation(column_index, row_index)
-      return if column_index >= ChessConfig::BOARD_WIDTH ||
-                row_index >= ChessConfig::BOARD_HEIGHT
+      check_boundaries(column_index, row_index)
 
       column = (column_index + 'a'.ord).chr
       "#{column}#{row_index + 1}"
     end
 
     def notation_to_coord(position_cn)
-      column = position_cn[0].downcase
-      row = position_cn[1]
-      column_index = column.ord - 'a'.ord
-      row_index = row.to_i - 1
+      column_index = position_cn[0].downcase.ord - 'a'.ord
+      row_index = position_cn[1].to_i - 1
+      check_boundaries(column_index, row_index)
+
       [column_index, row_index]
+    end
+
+    private
+
+    def check_boundaries(column_index, row_index)
+      if column_index >= ChessConfig::BOARD_WIDTH ||
+         row_index >= ChessConfig::BOARD_HEIGHT
+        raise IndexError, 'Out of bounds!'
+      end
     end
   end
 
