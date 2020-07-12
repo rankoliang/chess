@@ -2,6 +2,7 @@
 
 require_relative 'chess_config'
 require 'forwardable'
+require 'pry'
 
 # Contains information on the board state
 class Board
@@ -59,14 +60,12 @@ class Board
   # returns the chess piece at a certain position matching the format /[a..z]\d/
   def at(position)
     column_index, row_index = self.class.notation_to_coord(position)
-    return unless column_index && row_index
 
     self[row_index][column_index]
   end
 
   def set(position, value)
     column_index, row_index = self.class.notation_to_coord(position)
-    return unless column_index && row_index
 
     self[row_index][column_index] = value
   end
@@ -74,9 +73,9 @@ class Board
   # method moves a piece to a new space. The piece position is not updated
   def move_piece(to, piece)
     from = piece.position
-    set(from, nil) if from
     yield at(to) if block_given?
     set(to, piece)
+    set(from, nil) if from
   end
 
   class << self
