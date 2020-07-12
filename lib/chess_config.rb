@@ -18,7 +18,7 @@ module ChessConfig
                              Knight: "\u2658",
                              Pawn: "\u2659" },
                     default: '?' }.freeze
-  COLUMN_LABELS = ('a'..'z').to_a[0...ChessConfig::BOARD_WIDTH]
+  COLUMN_LABELS = ('a'..'z').to_a[0...BOARD_WIDTH]
   DEFAULT_LOCATIONS = { white: { Pawn: COLUMN_LABELS.map { |letter| "#{letter}2" },
                                  King: %w[e1],
                                  Queen: %w[d1],
@@ -31,5 +31,13 @@ module ChessConfig
                                  Bishop: %w[c8 f8],
                                  Knight: %w[b8 g8],
                                  Rook: %w[a8 h8] } }.freeze
-  def pawn_locations(row); end
+  def self.nested_hash_expand(current_level, keys = [])
+    return keys.product([current_level].flatten).map(&:flatten) unless current_level.is_a? Hash
+
+    result = []
+    current_level.each do |key, value|
+      result.append(*nested_hash_expand(value, [keys + [key]]))
+    end
+    result
+  end
 end
