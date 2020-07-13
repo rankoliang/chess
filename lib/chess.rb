@@ -2,6 +2,7 @@
 
 require_relative 'chess_board'
 require_relative 'chess_pieces'
+require_relative 'player'
 
 # Handles high level game objects
 class Chess
@@ -9,8 +10,12 @@ class Chess
   def initialize
     self.pieces = ChessConfig.nested_hash_expand(ChessConfig::DEFAULT_LOCATIONS)
                              .map do |player, piece, position|
-      [position, self.class.generate_piece(player, piece, position)]
+      new_piece = Pieces.const_get(piece).new(position: position, player: player)
+      [position, new_piece]
     end.to_h
+    self.players = %i[black white].map do |player_color|
+      Player.new(player_color, pieces: pieces_by_player(player_color))
+    end
     self.board = ChessBoard.new(pieces)
   end
 
@@ -23,13 +28,13 @@ class Chess
     update_pieces(from, to, piece)
   end
 
-  def self.generate_piece(player, piece, position)
-    Pieces.const_get(piece).new(position: position, player: player)
+  def pieces_by_player(player)
+    pieces.select { |_, piece| piece.player == player }
   end
 
   private
 
-  attr_writer :pieces, :board
+  attr_writer :pieces, :board, :players
 
   def update_pieces(from, to, piece)
     pieces.delete(from)

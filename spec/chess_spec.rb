@@ -10,7 +10,7 @@ RSpec.describe Chess do
     let(:board) { chess.board }
 
     it 'creates a non empty chess piece hash' do
-      expect(chess.pieces.size).to eq 8 * 4
+      expect(chess.pieces.size).to eq ChessConfig::BOARD_WIDTH * 4
     end
 
     it 'creates a board non-empty board' do
@@ -90,6 +90,36 @@ RSpec.describe Chess do
       it do
         expect { chess.move(from, to) }.to raise_error(IndexError)
           .and(not_change { board })
+      end
+    end
+  end
+
+  describe '#pieces_by_player' do
+    subject(:pieces) { chess.pieces_by_player(player).values }
+
+    let(:chess) { described_class.new }
+
+    context 'when the player is :white' do
+      let(:player) { :white }
+
+      it do
+        expect(chess.pieces_by_player(player).values).to all(have_attributes(player: player))
+      end
+    end
+
+    context 'when the player is :black' do
+      let(:player) { :black }
+
+      it do
+        expect(chess.pieces_by_player(player).values).to all(have_attributes(player: player))
+      end
+    end
+
+    context 'when the player does not exist' do
+      let(:player) { :blue }
+
+      it do
+        expect(chess.pieces_by_player(player).values).to be_empty
       end
     end
   end
