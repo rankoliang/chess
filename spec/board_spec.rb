@@ -3,14 +3,14 @@
 require_relative '../lib/board.rb'
 
 RSpec.describe Board do
-  describe '.size' do
-    subject(:board_size) { described_class.new.size }
+  describe '.dimensions' do
+    subject(:board_dimensions) { described_class.new.dimensions }
 
     context 'when the board is standard a standard size' do
       let(:width) { ChessConfig::BOARD_WIDTH }
       let(:height) { ChessConfig::BOARD_HEIGHT }
 
-      it { expect(board_size).to eq [width, height] }
+      it { expect(board_dimensions).to eq [width, height] }
     end
   end
 

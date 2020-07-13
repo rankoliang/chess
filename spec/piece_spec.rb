@@ -26,11 +26,11 @@ RSpec.describe Piece do
   end
 
   describe '#move' do
-    subject(:piece) { described_class.new(position: original_position, board: board) }
+    subject(:piece) { described_class.new(position: original_position) }
 
     shared_examples 'position changes' do
       it {
-        expect { piece.move(new_position) }.to change(piece, :position)
+        expect { piece.move(new_position, board) }.to change(piece, :position)
           .from(original_position).to new_position
       }
     end
@@ -40,7 +40,7 @@ RSpec.describe Piece do
       let(:board) { Board.new }
 
       it do
-        expect { piece.move(new_position) }
+        expect { piece.move(new_position, board) }
           .to(change { board.at(new_position) }.from(nil).to(piece))
       end
 
@@ -55,7 +55,7 @@ RSpec.describe Piece do
       before { board.set(original_position, piece) }
 
       it do
-        expect { piece.move(new_position) }
+        expect { piece.move(new_position, board) }
           .to(change { board.at(original_position) }.from(piece).to(nil)
           .and(change { board.at(new_position) }.from(nil).to(piece)))
       end

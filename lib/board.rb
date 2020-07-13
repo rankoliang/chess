@@ -2,7 +2,6 @@
 
 require_relative 'chess_config'
 require 'forwardable'
-require 'pry'
 
 # Contains information on the board state
 class Board
@@ -42,9 +41,9 @@ class Board
     "#{ChessConfig::BOARD_HEIGHT - row_index} #{row_of_pieces}"
   end
 
-  def_delegators :board_array, :[], :reverse, :each, :to_ary, :each_index
+  def_delegators :board_array, :[], :reverse, :each, :to_ary, :each_index, :size
 
-  def size
+  def dimensions
     height = board_array.size
     width = self[0].size
     [width, height]
