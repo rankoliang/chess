@@ -21,6 +21,10 @@ RSpec.describe Chess do
       expect(board.dimensions)
         .to eq [ChessConfig::BOARD_WIDTH, ChessConfig::BOARD_HEIGHT]
     end
+
+    it 'creates two players' do
+      expect(chess.players.size).to eq 2
+    end
   end
 
   describe '#move' do
@@ -57,25 +61,13 @@ RSpec.describe Chess do
         allow(chess).to receive(:board).and_return(board)
       end
 
-      it do
-        expect { chess.move(from, to) }
-          .not_to(change { board.at(from) }.from(nil))
-      end
+      it { expect { chess.move(from, to) } .not_to(change { board.at(from) }.from(nil)) }
 
-      it do
-        expect { chess.move(from, to) }
-          .not_to(change { board.at(to) })
-      end
+      it { expect { chess.move(from, to) } .not_to(change { board.at(to) }) }
 
-      it do
-        expect { chess.move(from, to) }
-          .not_to(change { chess.pieces[from] }.from(nil))
-      end
+      it { expect { chess.move(from, to) } .not_to(change { chess.pieces[from] }.from(nil)) }
 
-      it do
-        expect { chess.move(from, to) }
-          .not_to(change { chess.pieces[to] })
-      end
+      it { expect { chess.move(from, to) } .not_to(change { chess.pieces[to] }) }
 
       it { expect { chess.move(from, to) }.not_to(change { board }) }
     end

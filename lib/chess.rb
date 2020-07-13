@@ -13,7 +13,7 @@ class Chess
       new_piece = Pieces.const_get(piece).new(position: position, player: player)
       [position, new_piece]
     end.to_h
-    self.players = %i[black white].map do |player_color|
+    self.players = %i[white black].map do |player_color|
       Player.new(player_color, pieces: pieces_by_player(player_color))
     end
     self.board = ChessBoard.new(pieces)
