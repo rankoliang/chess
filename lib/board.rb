@@ -101,9 +101,9 @@ class Board
     private
 
     def check_boundaries(column_index, row_index)
-      if column_index >= ChessConfig::BOARD_WIDTH ||
-         row_index >= ChessConfig::BOARD_HEIGHT
-        raise IndexError, 'Out of bounds!'
+      unless column_index.between?(0, ChessConfig::BOARD_WIDTH) &&
+             row_index.between?(0, ChessConfig::BOARD_HEIGHT)
+        raise IndexError, "[#{column_index}, #{row_index}] is out of bounds!"
       end
     end
   end

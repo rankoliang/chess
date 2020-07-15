@@ -31,6 +31,7 @@ module ChessConfig
                                  Bishop: %w[c8 f8],
                                  Knight: %w[b8 g8],
                                  Rook: %w[a8 h8] } }.freeze
+  # TODO: Refactor to an easier to understand iterative method
   def self.nested_hash_expand(current_level, keys = [])
     return keys.product([current_level].flatten).map(&:flatten) unless current_level.is_a? Hash
 

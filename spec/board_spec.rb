@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../lib/board.rb'
+require_relative '../lib/board'
+require_relative '../lib/piece'
 
 RSpec.describe Board do
   describe '.dimensions' do
@@ -41,7 +42,7 @@ RSpec.describe Board do
     context 'when the position is out of bounds' do
       let(:position) { 'Z8' }
 
-      it { expect { board.at(position) }.to raise_error IndexError, 'Out of bounds!' }
+      it { expect { board.at(position) }.to raise_error IndexError }
     end
   end
 
@@ -61,7 +62,7 @@ RSpec.describe Board do
       let(:column) { ChessConfig::BOARD_WIDTH + 1 }
       let(:row) { ChessConfig::BOARD_HEIGHT + 1 }
 
-      it { expect { chess_notation }.to raise_error IndexError, 'Out of bounds!' }
+      it { expect { chess_notation }.to raise_error IndexError }
     end
   end
 
@@ -69,7 +70,7 @@ RSpec.describe Board do
     subject(:board) { described_class.new }
 
     context 'when given a valid position' do
-      let(:piece) { instance_double('piece') }
+      let(:piece) { instance_double('Piece') }
 
       let(:position) { 'B4' }
 
@@ -80,12 +81,12 @@ RSpec.describe Board do
     end
 
     context 'when given an invalid position' do
-      let(:piece) { instance_double('piece') }
+      let(:piece) { instance_double('Piece') }
 
       let(:position) { 'K9' }
 
       it 'changes the board' do
-        expect { board.set(position, piece) }.to raise_error IndexError, 'Out of bounds!'
+        expect { board.set(position, piece) }.to raise_error IndexError
       end
     end
   end
