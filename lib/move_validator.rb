@@ -13,17 +13,20 @@ class MoveValidator
   end
 
   def validate(piece, moves)
-    moves.each_with_object([]) do |move, validated|
-      begin
-        validation_position = offset_position(move)
-        occupying_piece = yield(validation_position) if block_given?
-      rescue IndexError
-        rescue_strategy.call(validated)
+    catch :interrupted do
+      moves.each_with_object([]) do |move, validated|
+        begin
+          validation_position = offset_position(move)
+          occupying_piece = yield(validation_position) if block_given?
+        rescue IndexError
+          rescue_strategy.call(validated)
+        end
+        if blocking_strategy.blocked(piece, occupying_piece)
+          rescue_strategy.call(validated)
+        else
+          validated << validation_position
+        end
       end
-      next if blocking_strategy.blocked(piece, occupying_piece)
-
-      validated << validation_position
-      rescue_strategy.call(validated)
     end
   end
 
@@ -78,6 +81,6 @@ module BlockingStrategy
 end
 
 module RescueStrategy
-  INTERRUPT = ->(validated) { return validated }
+  INTERRUPT = proc { |validated| throw :interrupted, validated }
   CONTINUE = proc { next }
 end

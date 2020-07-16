@@ -43,7 +43,7 @@ RSpec.describe Pieces::Pawn do
         allow(board).to receive(:at).with('a3').and_return(defending_piece)
       end
 
-      xit 'can not move' do
+      it 'can not move' do
         expect(pawn.valid_moves(&get_position))
           .to be_empty
       end
