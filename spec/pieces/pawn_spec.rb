@@ -31,5 +31,22 @@ RSpec.describe Pieces::Pawn do
           .to contain_exactly('a3', 'a4', 'b3')
       end
     end
+
+    context 'when blocked by an opposing piece' do
+      let(:position) { 'a2' }
+      let(:board) { Board.new }
+      let(:defending_piece) { instance_double('Piece', player: :black) }
+      let(:get_position) { proc { |position| board.at(position) } }
+
+      before do
+        allow(board).to receive(:at).and_call_original
+        allow(board).to receive(:at).with('a3').and_return(defending_piece)
+      end
+
+      xit 'can not move' do
+        expect(pawn.valid_moves(&get_position))
+          .to be_empty
+      end
+    end
   end
 end

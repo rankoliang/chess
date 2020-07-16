@@ -2,6 +2,8 @@
 
 require 'set'
 require_relative 'piece'
+require_relative 'move_validator'
+
 # All of the different types of chess pieces
 module Pieces
   # The bishop can move any number of spaces diagonally.
@@ -21,38 +23,22 @@ module Pieces
   # first move. It can take other pieces diagonally.
   class Pawn < Piece
     # TODO: Refactor to avoid duplication with #attack_moves
-    def valid_moves(&piece_at_position)
-      valid_moves = []
-      1.upto(2).each do |row_offset|
-        begin
-          pending_move = Board.chess_notation(coordinates.column, coordinates.row + row_offset)
-          blocking_piece = piece_at_position.call(pending_move) if block_given?
-        rescue IndexError
-          next
-        end
-        valid_moves << pending_move unless opposing_player?(blocking_piece)
-      end
-      if block_given?
-        valid_moves.concat(attack_moves(&piece_at_position))
-      else
-        valid_moves
-      end
+    def valid_moves(&get_occupying_piece)
+      moves = [[0, 1], [0, 2]]
+      # Blocked if the other piece is not a teammate
+      move_validator = MoveValidator.new(
+        coordinates, BlockingStrategy::Enemy, RescueStrategy::INTERRUPT
+      )
+      move_validator.validate(self, moves, &get_occupying_piece) +
+        attack_moves(&get_occupying_piece)
     end
 
-    private
-
-    def attack_moves(&piece_at_position)
-      valid_moves = []
-      [[-1, 1], [1, 1]].each do |column_offset, row_offset|
-        begin
-          pending_move = Board.chess_notation(coordinates.column + column_offset, coordinates.row + row_offset)
-          blocking_piece = piece_at_position.call(pending_move)
-        rescue IndexError
-          next
-        end
-        valid_moves << pending_move if opposing_player?(blocking_piece)
-      end
-      valid_moves
+    def attack_moves(&get_occupying_piece)
+      moves = [[-1, 1], [1, 1]]
+      move_validator = MoveValidator.new(
+        coordinates, BlockingStrategy::NonEnemy, RescueStrategy::CONTINUE
+      )
+      move_validator.validate(self, moves, &get_occupying_piece)
     end
   end
 
