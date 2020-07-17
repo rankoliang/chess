@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'chess_config'
+require 'colorize'
 require 'forwardable'
 
 # Contains information on the board state
@@ -20,8 +21,8 @@ class Board
 
   def to_s
     # Draws from the bottom to up
-    board_display = reverse.map.with_index do |row, row_index|
-      row_to_s(row_index, row)
+    board_display = reverse.zip(board_bg.reverse).map.with_index do |row, row_index|
+      self.class.row_to_s(row_index, row)
     end.join("\n")
 
     # column_labels = ('a'..'z').to_a[0...ChessConfig::BOARD_WIDTH]
@@ -33,9 +34,11 @@ class Board
     puts to_s
   end
 
-  def row_to_s(row_index, row)
-    row_of_pieces = row.map.with_index do |piece, column_index|
-      Board.str_w_bg(piece || ' ', board_bg[row_index][column_index])
+  def self.row_to_s(row_index, row)
+    pieces, backgrounds = row
+    row_of_pieces = pieces.zip(backgrounds).map do |piece, background|
+      piece ||= ' '
+      " #{piece} ".colorize(background: background)
     end.join
 
     "#{ChessConfig::BOARD_HEIGHT - row_index} #{row_of_pieces}"
@@ -52,7 +55,11 @@ class Board
   # Highlights each element of the row to alternate colors
   def self.row_background(row, row_index)
     row.each_index.map do |column_index|
-      (row_index + column_index).even? ? :black : :blue
+      if (row_index + column_index).even?
+        ChessConfig::BACKGROUND_DARK
+      else
+        ChessConfig::BACKGROUND_LIGHT
+end
     end
   end
 
@@ -78,11 +85,6 @@ class Board
   end
 
   class << self
-    def str_w_bg(string, bg_color)
-      color_code = ChessConfig::COLOR_CODES[bg_color]
-      "\e[#{color_code}m #{string} \e[0m"
-    end
-
     def chess_notation(column_index, row_index)
       check_boundaries(column_index, row_index)
 
