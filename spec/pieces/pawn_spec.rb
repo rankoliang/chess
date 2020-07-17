@@ -17,19 +17,19 @@ RSpec.describe Pieces::Pawn do
     end
 
     context 'when able to capture a piece' do
-      it_behaves_like 'movable piece', 'a2', ['b3'], %w[a3 a4 b3]
+      it_behaves_like 'movable piece', 'a2', %w[a3 a4 b3], ['b3']
     end
 
     context 'when blocked by an opposing piece' do
-      it_behaves_like 'movable piece', 'a2', ['a3'], []
+      it_behaves_like 'movable piece', 'a2', [], ['a3']
     end
 
     context 'when one space is blocked' do
-      it_behaves_like 'movable piece', 'a2', ['a4'], ['a3']
+      it_behaves_like 'movable piece', 'a2', ['a3'], ['a4']
     end
 
     context 'when blocked but able to capture a piece' do
-      it_behaves_like 'movable piece', 'a2', %w[b3 a4], %w[a3 b3]
+      it_behaves_like 'movable piece', 'a2', %w[a3 b3], %w[b3 a4]
     end
   end
 end
