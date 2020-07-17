@@ -6,25 +6,19 @@ require_relative 'board'
 class MoveValidator
   attr_reader :coordinates, :blocking_strategy, :rescue_strategy
 
-  def initialize(coordinates, blocking_strategy, rescue_strategy)
-    self.coordinates = coordinates
-    self.blocking_strategy = blocking_strategy
-    self.rescue_strategy = rescue_strategy
+  def initialize(blocking_strategy = :Friendly, rescue_strategy = :INTERRUPT)
+    self.blocking_strategy = BlockingStrategy.const_get(blocking_strategy)
+    self.rescue_strategy = RescueStrategy.const_get(rescue_strategy)
   end
 
-  def validate(piece, moves)
-    catch :interrupted do
+  def validate(piece, moves, &piece_get)
+    catch :validated do
       moves.each_with_object([]) do |move, validated|
-        begin
-          validation_position = offset_position(move)
-          occupying_piece = yield(validation_position) if block_given?
-        rescue IndexError
-          rescue_strategy.call(validated)
-        end
-        if blocking_strategy.blocked(piece, occupying_piece)
+        future_position, contesting_piece = contesting(move, validated, piece, &piece_get)
+        if blocking_strategy.blocked(piece, contesting_piece)
           rescue_strategy.call(validated)
         else
-          validated << validation_position
+          validated << future_position
         end
       end
     end
@@ -34,12 +28,14 @@ class MoveValidator
 
   attr_writer :coordinates, :blocking_strategy, :rescue_strategy
 
-  def offset_position(move)
-    column_offset, row_offset = move
-    Board.chess_notation(
-      coordinates.column + column_offset,
-      coordinates.row + row_offset
-    )
+  # Returns the coordinates at a future move and the piece that is
+  # possibly contesting the current piece
+  def contesting(move, validated, original_piece)
+    future_position = original_piece.offset_position(move)
+    contesting_piece = yield(future_position) if block_given?
+    [future_position, contesting_piece]
+  rescue IndexError
+    rescue_strategy.call(validated)
   end
 end
 
@@ -63,8 +59,8 @@ module BlockingStrategy
     end
   end
 
-  # blocked if opposing piece is a teammate
-  class Teammate
+  # blocked if opposing piece is friendly
+  class Friendly
     def self.blocked(main, other)
       main.player == other.player
     rescue NoMethodError
@@ -81,6 +77,6 @@ module BlockingStrategy
 end
 
 module RescueStrategy
-  INTERRUPT = proc { |validated| throw :interrupted, validated }
+  INTERRUPT = proc { |validated| throw :validated, validated }
   CONTINUE = proc { next }
 end

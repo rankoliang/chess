@@ -27,6 +27,14 @@ class Piece
     self.position = new_position
   end
 
+  def offset_position(move)
+    column_offset, row_offset = move
+    Board.chess_notation(
+      coordinates.column + column_offset,
+      coordinates.row + row_offset
+    )
+  end
+
   protected
 
   def opposing_player?(other)

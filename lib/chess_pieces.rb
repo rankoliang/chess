@@ -27,7 +27,7 @@ module Pieces
       moves = [[0, 1], [0, 2]]
       # Blocked if the other piece is not a teammate
       move_validator = MoveValidator.new(
-        coordinates, BlockingStrategy::Enemy, RescueStrategy::INTERRUPT
+        :Enemy, :INTERRUPT
       )
       move_validator.validate(self, moves, &get_occupying_piece) +
         attack_moves(&get_occupying_piece)
@@ -36,7 +36,7 @@ module Pieces
     def attack_moves(&get_occupying_piece)
       moves = [[-1, 1], [1, 1]]
       move_validator = MoveValidator.new(
-        coordinates, BlockingStrategy::NonEnemy, RescueStrategy::CONTINUE
+        :NonEnemy, :CONTINUE
       )
       move_validator.validate(self, moves, &get_occupying_piece)
     end
