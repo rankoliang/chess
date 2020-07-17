@@ -2,6 +2,7 @@
 
 require_relative '../../lib/chess_pieces'
 require_relative '../../lib/board'
+require_relative 'shared_examples_for_pieces'
 
 RSpec.describe Pieces::Pawn do
   describe '#valid_moves' do
@@ -12,25 +13,6 @@ RSpec.describe Pieces::Pawn do
 
       it 'can move up to two spaces forward' do
         expect(pawn.valid_moves).to contain_exactly('a3', 'a4')
-      end
-    end
-
-    RSpec.shared_examples 'movable piece' do |subject_position, opponent_positions, valid_moves|
-      let(:position) { subject_position }
-      let(:board) { Board.new }
-      let(:defending_piece) { instance_double('Piece', player: :black) }
-      let(:get_position) { proc { |position| board.at(position) } }
-
-      before do
-        allow(board).to receive(:at).and_call_original
-        opponent_positions.each do |opp_pos|
-          allow(board).to receive(:at).with(opp_pos).and_return(defending_piece)
-        end
-      end
-
-      it do
-        expect(pawn.valid_moves(&get_position))
-          .to contain_exactly(*valid_moves)
       end
     end
 
