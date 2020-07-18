@@ -1,10 +1,17 @@
 # frozen_string_literal: true
 
+require 'paint'
+
 module ChessConfig
   BOARD_WIDTH = 8
   BOARD_HEIGHT = 8
-  BACKGROUND_DARK = :black
-  BACKGROUND_LIGHT = :blue
+  # rubocop:disable Style/StringLiterals
+  BACKGROUND_DARK = Hash.new(:black).update(0xFFFFFF => "black")
+  BACKGROUND_LIGHT = Hash.new(:cyan).update(0xFFFFFF => "dark cyan")
+  PIECE_COLOR = Hash.new(:white).update(0xFFFFFF => "white")
+  # rubocop:enable Style/StringLiterals
+  TRUE_COLORS = true
+  Paint.mode = 256 unless TRUE_COLORS
   PIECE_SYMBOLS = { white: { King: "\u265A",
                              Queen: "\u265B",
                              Rook: "\u265C",
