@@ -10,7 +10,7 @@ RSpec.describe Chess do
     let(:board) { chess.board }
 
     it 'creates a non empty chess piece hash' do
-      expect(chess.pieces.size).to eq ChessConfig::BOARD_WIDTH * 4
+      expect(chess.pieces.size).to eq CConf::BOARD_WIDTH * 4
     end
 
     it 'creates a board non-empty board' do
@@ -19,7 +19,7 @@ RSpec.describe Chess do
 
     it 'creates a board with dimensions 8 x 8' do
       expect(board.dimensions)
-        .to eq [ChessConfig::BOARD_WIDTH, ChessConfig::BOARD_HEIGHT]
+        .to eq [CConf::BOARD_WIDTH, CConf::BOARD_HEIGHT]
     end
 
     it 'creates two players' do

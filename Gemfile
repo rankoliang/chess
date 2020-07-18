@@ -1,2 +1,4 @@
 source 'https://rubygems.org'
-gem 'colorize'
+gem 'paint'
+gem 'rspec', group: :development
+gem 'simplecov', group: :development

@@ -8,7 +8,7 @@ RSpec.describe Piece do
   describe '#to_s' do
     subject(:piece) { described_class.new }
 
-    it { expect(piece.to_s).to eq ChessConfig::PIECE_SYMBOLS[:default] }
+    it { expect(piece.to_s).to eq CConf::PIECE_SYMBOLS[:default] }
   end
 
   describe '#position' do

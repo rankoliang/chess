@@ -4,7 +4,6 @@ require_relative 'chess_config'
 require 'paint'
 require 'forwardable'
 
-CConf = ChessConfig
 # Contains information on the board state
 class Board
   attr_reader :board_array

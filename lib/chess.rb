@@ -3,13 +3,14 @@
 require_relative 'chess_board'
 require_relative 'chess_pieces'
 require_relative 'player'
+require_relative 'chess_config'
 
 # Handles high level game objects
 class Chess
   attr_reader :board, :pieces, :players
   def initialize
-    self.pieces = ChessConfig.nested_hash_expand(ChessConfig::DEFAULT_LOCATIONS)
-                             .map do |player, piece, position|
+    self.pieces = CConf.nested_hash_expand(CConf::DEFAULT_LOCATIONS)
+                       .map do |player, piece, position|
       chess_piece = Pieces.const_get(piece) || Piece
       new_piece = chess_piece.new(position: position, player: player)
       [position, new_piece]

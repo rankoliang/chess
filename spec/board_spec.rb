@@ -8,8 +8,8 @@ RSpec.describe Board do
     subject(:board_dimensions) { described_class.new.dimensions }
 
     context 'when the board is standard a standard size' do
-      let(:width) { ChessConfig::BOARD_WIDTH }
-      let(:height) { ChessConfig::BOARD_HEIGHT }
+      let(:width) { CConf::BOARD_WIDTH }
+      let(:height) { CConf::BOARD_HEIGHT }
 
       it { expect(board_dimensions).to eq [width, height] }
     end
@@ -59,8 +59,8 @@ RSpec.describe Board do
     end
 
     describe 'when the indices are not valid' do
-      let(:column) { ChessConfig::BOARD_WIDTH + 1 }
-      let(:row) { ChessConfig::BOARD_HEIGHT + 1 }
+      let(:column) { CConf::BOARD_WIDTH + 1 }
+      let(:row) { CConf::BOARD_HEIGHT + 1 }
 
       it { expect { chess_notation }.to raise_error IndexError }
     end

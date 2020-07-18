@@ -2,6 +2,8 @@
 
 require 'paint'
 
+# Contains contants used throughout the program
+# :reek:TooManyConstants
 module ChessConfig
   BOARD_WIDTH = 8
   BOARD_HEIGHT = 8
@@ -49,3 +51,5 @@ module ChessConfig
     result
   end
 end
+
+CConf = ChessConfig
