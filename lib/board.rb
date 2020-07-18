@@ -104,8 +104,8 @@ class Board
     private
 
     def check_boundaries(column_index, row_index)
-      unless column_index.between?(0, CConf::BOARD_WIDTH) &&
-             row_index.between?(0, CConf::BOARD_HEIGHT)
+      unless column_index.between?(0, CConf::BOARD_WIDTH - 1) &&
+             row_index.between?(0, CConf::BOARD_HEIGHT - 1)
         raise IndexError, "[#{column_index}, #{row_index}] is out of bounds!"
       end
     end
