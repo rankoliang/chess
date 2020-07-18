@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_examples 'movable piece' do
+RSpec.shared_examples 'a piece that moves' do
   |subject_position, valid_moves, opponent_positions = [], friendly_positions = []|
   let(:position) { subject_position }
   let(:board) { Board.new }

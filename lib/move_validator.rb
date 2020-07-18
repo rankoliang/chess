@@ -4,7 +4,7 @@ require_relative 'board'
 
 # validates moves for a piece
 class MoveValidator
-  attr_reader :coordinates, :blocking_strategy, :rescue_strategy
+  attr_reader :blocking_strategy, :rescue_strategy
 
   def initialize(blocking_strategy = :Friendly, rescue_strategy = :INTERRUPT)
     self.blocking_strategy = BlockingStrategy.const_get(blocking_strategy)
@@ -26,7 +26,7 @@ class MoveValidator
 
   private
 
-  attr_writer :coordinates, :blocking_strategy, :rescue_strategy
+  attr_writer :blocking_strategy, :rescue_strategy
 
   # Returns the coordinates at a future move and the piece that is
   # possibly contesting the current piece
