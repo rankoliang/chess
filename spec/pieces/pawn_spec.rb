@@ -17,19 +17,23 @@ RSpec.describe Pieces::Pawn do
     end
 
     context 'when able to capture a piece' do
-      it_behaves_like 'a piece that moves', 'a2', %w[a3 a4 b3], ['b3']
+      it_behaves_like 'a piece that moves', 'can capture diagonally',
+                      'a2', expected_moves: %w[a3 a4 b3], enemies: %w[b3]
     end
 
     context 'when blocked by an opposing piece' do
-      it_behaves_like 'a piece that moves', 'a2', [], ['a3']
+      it_behaves_like 'a piece that moves', 'cannot move',
+                      'a2', enemies: %w[a3]
     end
 
     context 'when one space is blocked' do
-      it_behaves_like 'a piece that moves', 'a2', ['a3'], ['a4']
+      it_behaves_like 'a piece that moves', 'can only move one space',
+                      'a2', expected_moves: %w[a3], enemies: %w[a4]
     end
 
     context 'when blocked but able to capture a piece' do
-      it_behaves_like 'a piece that moves', 'b2', %w[b3 c3], %w[c3 b4]
+      it_behaves_like 'a piece that moves', 'can only capture',
+                      'b2', expected_moves: %w[b3 c3], enemies: %w[c3 b4]
     end
   end
 end

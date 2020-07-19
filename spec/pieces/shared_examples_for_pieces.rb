@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_examples 'a piece that moves' do
-  |subject_position, valid_moves, opponent_positions = [], friendly_positions = []|
+RSpec.shared_examples 'a piece that moves' do |expectation_message, subject_position, **positions|
   let(:position) { subject_position }
   let(:board) { Board.new }
   let(:defending_piece) { instance_double('Piece', player: :black) }
@@ -10,16 +9,17 @@ RSpec.shared_examples 'a piece that moves' do
 
   before do
     allow(board).to receive(:at).and_call_original
-    opponent_positions.each do |opp_pos|
+    positions.default = []
+    positions[:enemies].each do |opp_pos|
       allow(board).to receive(:at).with(opp_pos).and_return(defending_piece)
     end
-    friendly_positions.each do |friend_pos|
+    positions[:friendly].each do |friend_pos|
       allow(board).to receive(:at).with(friend_pos).and_return(friendly_piece)
     end
   end
 
-  it do
+  it expectation_message do
     expect(subject.valid_moves(&get_position))
-      .to contain_exactly(*valid_moves)
+      .to contain_exactly(*positions[:expected_moves])
   end
 end

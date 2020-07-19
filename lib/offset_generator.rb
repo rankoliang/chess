@@ -33,6 +33,8 @@ class OffsetGenerator
 
   def generate_moves
     Enumerator.new do |yielder|
+      # TODO: can be improved by calculating the number of iterations
+      # instead of checking every iteration (wishlist)
       while within_boundaries
         yielder << [steps[:hor] * offset, steps[:vert] * offset]
         self.offset += 1
