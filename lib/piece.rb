@@ -67,4 +67,18 @@ class Piece
     column_index, row_index = *Board.notation_to_coord(position)
     OpenStruct.new(column: column_index, row: row_index)
   end
+
+  # u = up, l = left, d = down, r = right
+  def diagonal_moves(direction)
+    off_gen = DiagonalOffsetGenerator.new(coordinates, direction)
+    off_gen.moves
+  end
+
+  def validated_moves(directions, occupying_piece_get)
+    directions.map do |direction|
+      moves = yield(direction)
+      move_validator = MoveValidator.new
+      move_validator.validate(self, moves, &occupying_piece_get)
+    end.reduce(Set.new, &:union)
+  end
 end

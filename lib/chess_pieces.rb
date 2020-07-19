@@ -7,22 +7,13 @@ require_relative 'offset_generator'
 
 # All of the different types of chess pieces
 module Pieces
-  # u = up, l = left, d = down, r = right
-  def self.diagonal_moves(coordinates, direction)
-    off_gen = DiagonalOffsetGenerator.new(coordinates, direction)
-    off_gen.moves
-  end
-
   # The bishop can move any number of spaces diagonally.
   class Bishop < Piece
-    def valid_moves(&get_occupying_piece)
-      # iterates through all four diagonal positions returns the union of
-      # the sets
-      %w[u d].product(%w[r l]).map(&:join).map do |direction|
-        moves = Pieces.diagonal_moves(coordinates, direction)
-        move_validator = MoveValidator.new
-        move_validator.validate(self, moves, &get_occupying_piece)
-      end.reduce(Set.new, &:union)
+    def valid_moves(&occupying_piece_get)
+      # iterates through all four diagonal positions
+      # returns the union of the sets
+      directions = %w[u d].product(%w[r l]).map(&:join)
+      validated_moves(directions, occupying_piece_get) { |direction| diagonal_moves(direction) }
     end
   end
 
@@ -38,24 +29,24 @@ module Pieces
   # Pawn usually moves one space at a time, but can move two spaces as its
   # first move. It can take other pieces diagonally.
   class Pawn < Piece
-    def valid_moves(&get_occupying_piece)
+    def valid_moves(&occupying_piece_get)
       moves = [[0, 1], [0, 2]]
       # Blocked if the other piece is not a teammate
       move_validator = MoveValidator.new(
         :AnyPiece, :INTERRUPT
       )
-      move_validator.validate(self, moves, &get_occupying_piece) +
-        attack_moves(&get_occupying_piece)
+      move_validator.validate(self, moves, &occupying_piece_get) +
+        attack_moves(&occupying_piece_get)
     end
 
     private
 
-    def attack_moves(&get_occupying_piece)
+    def attack_moves(&occupying_piece_get)
       moves = [[-1, 1], [1, 1]]
       move_validator = MoveValidator.new(
         :NonEnemy, :CONTINUE
       )
-      move_validator.validate(self, moves, &get_occupying_piece)
+      move_validator.validate(self, moves, &occupying_piece_get)
     end
   end
 
