@@ -42,7 +42,7 @@ module Pieces
       moves = [[0, 1], [0, 2]]
       # Blocked if the other piece is not a teammate
       move_validator = MoveValidator.new(
-        :Enemy, :INTERRUPT
+        :AnyPiece, :INTERRUPT
       )
       move_validator.validate(self, moves, &get_occupying_piece) +
         attack_moves(&get_occupying_piece)

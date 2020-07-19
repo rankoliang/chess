@@ -63,12 +63,17 @@ module BlockingStrategy
     attr_accessor :capture
   end
 
+  # Blocked by any piece
+  class AnyPiece
+    def blocked(_main, other)
+      !!other
+    end
+  end
+
   # blocked if opposing piece is an enemy
   class Enemy
     def blocked(main, other)
       main.enemy? other
-    rescue NoMethodError
-      false
     end
   end
 

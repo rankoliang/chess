@@ -22,8 +22,13 @@ RSpec.describe Pieces::Pawn do
     end
 
     context 'when blocked by an opposing piece' do
-      it_behaves_like 'a piece that moves', that('cannot move'),
+      it_behaves_like 'a piece that moves', that('is blocked'),
                       'a2', enemies: %w[a3]
+    end
+
+    context 'when blocked by an friendly piece' do
+      it_behaves_like 'a piece that moves', that('is blocked'),
+                      'a2', friendly: %w[a3]
     end
 
     context 'when one space is blocked' do
