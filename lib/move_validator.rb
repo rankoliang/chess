@@ -6,8 +6,8 @@ require_relative 'board'
 class MoveValidator
   attr_reader :blocking_strategy, :rescue_strategy
 
-  def initialize(blocking_strategy = :Friendly, rescue_strategy = :INTERRUPT)
-    self.blocking_strategy = BlockingStrategy.const_get(blocking_strategy)
+  def initialize(blocking_strategy = :Standard, rescue_strategy = :INTERRUPT)
+    self.blocking_strategy = BlockingStrategy.const_get(blocking_strategy).new
     self.rescue_strategy = RescueStrategy.const_get(rescue_strategy)
   end
 
@@ -41,10 +41,32 @@ end
 
 # Checks if a piece blocks another piece
 module BlockingStrategy
+  # Blocked by friendly units and after a capture
+  class Standard
+    def initialize
+      self.capture = false
+    end
+
+    def blocked(main, other)
+      return true if capture
+
+      if main.enemy? other
+        self.capture = true
+        false
+      else
+        main.friendly? other
+      end
+    end
+
+    private
+
+    attr_accessor :capture
+  end
+
   # blocked if opposing piece is an enemy
   class Enemy
-    def self.blocked(main, other)
-      main.player != other.player
+    def blocked(main, other)
+      main.enemy? other
     rescue NoMethodError
       false
     end
@@ -52,25 +74,21 @@ module BlockingStrategy
 
   # blocked if opposing piece not is an enemy
   class NonEnemy
-    def self.blocked(main, other)
-      main.player == other.player
-    rescue NoMethodError
-      true
+    def blocked(main, other)
+      main.non_enemy? other
     end
   end
 
   # blocked if opposing piece is friendly
   class Friendly
-    def self.blocked(main, other)
-      main.player == other.player
-    rescue NoMethodError
-      false
+    def blocked(main, other)
+      main.friendly? other
     end
   end
 
   # not blocked by anything
   class NoBlock
-    def self.blocked(_main, _other)
+    def blocked(_main, _other)
       false
     end
   end

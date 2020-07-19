@@ -35,10 +35,20 @@ class Piece
     )
   end
 
-  protected
-
-  def opposing_player?(other)
+  def enemy?(other)
     other.player != player
+  rescue NoMethodError
+    false
+  end
+
+  def non_enemy?(other)
+    other.player == player
+  rescue NoMethodError
+    true
+  end
+
+  def friendly?(other)
+    other.player == player
   rescue NoMethodError
     false
   end
