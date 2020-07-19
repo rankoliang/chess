@@ -9,9 +9,7 @@ require_relative 'offset_generator'
 module Pieces
   # u = up, l = left, d = down, r = right
   def self.diagonal_moves(coordinates, direction)
-    off_gen = OffsetGenerator.new(
-      coordinates, direction, vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 }
-    )
+    off_gen = DiagonalOffsetGenerator.new(coordinates, direction)
     off_gen.moves
   end
 

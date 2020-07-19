@@ -3,14 +3,13 @@
 # dynamically generates offsets from a starting coordinate to a board's
 # boundaries
 class OffsetGenerator
-  def initialize(coordinates, direction, **step_mappings)
-    # Hash of directions (u, l, r, d)
-    dirs = Hash[
-      %i[vert hor].zip(direction.split('').map(&:to_sym))
-    ]
+  def initialize(coordinates, direction)
+    pre_initialize(coordinates, direction)
+    raise NotImplementedError, "#{self.class}.directions is not implemented" unless directions
+
     self.coordinates = coordinates
-    self.steps = step_mappings.map do |axis, step_map|
-      directional_step = step_map[dirs[axis]] || 0
+    self.steps = step_directions.map do |axis, step_map|
+      directional_step = step_map[directions[axis]] || 0
       [axis, directional_step]
     end.to_h
     self.offset = 1
@@ -24,7 +23,15 @@ class OffsetGenerator
 
   private
 
-  attr_accessor :coordinates, :steps, :direction, :offset
+  attr_accessor :coordinates, :steps, :offset
+
+  def step_directions
+    raise NotImplementedError
+  end
+
+  def direction
+    raise NotImplementedError
+  end
 
   def generate
     while within_boundaries
@@ -41,5 +48,21 @@ class OffsetGenerator
   def within_boundaries
     offset_coordinates[0].between?(0, CConf::BOARD_WIDTH - 1) &&
       offset_coordinates[1].between?(0, CConf::BOARD_HEIGHT - 1)
+  end
+end
+
+# Generates diagonal offsets
+class DiagonalOffsetGenerator < OffsetGenerator
+  def pre_initialize(_coordinates, direction)
+    # Hash of directions (u, l, r, d)
+    self.directions = Hash[%i[vert hor].zip(direction.split('').map(&:to_sym))]
+  end
+
+  private
+
+  attr_accessor :directions
+
+  def step_directions
+    @step_directions ||= { vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 } }
   end
 end
