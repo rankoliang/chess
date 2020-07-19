@@ -16,9 +16,7 @@ class OffsetGenerator
   end
 
   def moves
-    moves = []
-    generate { |move| moves << move }
-    moves
+    generate_moves.to_h
   end
 
   private
@@ -33,10 +31,12 @@ class OffsetGenerator
     raise NotImplementedError
   end
 
-  def generate
-    while within_boundaries
-      yield [steps[:hor] * offset, steps[:vert] * offset]
-      self.offset += 1
+  def generate_moves
+    Enumerator.new do |yielder|
+      while within_boundaries
+        yielder << [steps[:hor] * offset, steps[:vert] * offset]
+        self.offset += 1
+      end
     end
   end
 
