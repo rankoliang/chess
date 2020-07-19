@@ -23,3 +23,7 @@ RSpec.shared_examples 'a piece that moves' do |expectation_message, subject_posi
       .to contain_exactly(*positions[:expected_moves])
   end
 end
+
+def that(expectation_message)
+  expectation_message
+end
