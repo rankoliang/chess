@@ -21,7 +21,7 @@ module Pieces
       %w[u d].product(%w[r l]).map(&:join).map do |direction|
         moves = Pieces.diagonal_moves(coordinates, direction)
         move_validator = MoveValidator.new
-        move_validator.validate(self, moves, &get_occupying_piece).to_set
+        move_validator.validate(self, moves, &get_occupying_piece)
       end.reduce(Set.new, &:union)
     end
   end
@@ -44,7 +44,7 @@ module Pieces
       move_validator = MoveValidator.new(
         :Enemy, :INTERRUPT
       )
-      move_validator.validate(self, moves, &get_occupying_piece).to_set +
+      move_validator.validate(self, moves, &get_occupying_piece) +
         attack_moves(&get_occupying_piece)
     end
 
@@ -55,7 +55,7 @@ module Pieces
       move_validator = MoveValidator.new(
         :NonEnemy, :CONTINUE
       )
-      move_validator.validate(self, moves, &get_occupying_piece).to_set
+      move_validator.validate(self, moves, &get_occupying_piece)
     end
   end
 

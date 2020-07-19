@@ -77,6 +77,6 @@ module BlockingStrategy
 end
 
 module RescueStrategy
-  INTERRUPT = proc { |validated| throw :validated, validated }
+  INTERRUPT = proc { |validated| throw :validated, validated.to_set }
   CONTINUE = proc { next }
 end
