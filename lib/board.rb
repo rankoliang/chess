@@ -57,9 +57,9 @@ class Board
   def self.row_background(row, row_index)
     row.each_index.map do |column_index|
       if (row_index + column_index).even?
-        CConf::BACKGROUND_DARK[Paint.mode]
+        CConf::BACKGROUND_DARK
       else
-        CConf::BACKGROUND_LIGHT[Paint.mode]
+        CConf::BACKGROUND_LIGHT
       end
     end
   end
@@ -127,6 +127,6 @@ class Board
     self.board_bg = board_array.map.with_index do |row, row_index|
       self.class.row_background(row, row_index)
     end
-    self.board_fg = board_array.map { |row| row.map { CConf::PIECE_COLOR[Paint.mode] } }
+    self.board_fg = board_array.map { |row| row.map { CConf::PIECE_COLOR } }
   end
 end
