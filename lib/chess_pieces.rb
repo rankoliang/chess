@@ -29,6 +29,12 @@ module Pieces
 
   # Knight moves in an 'L' shape
   class Knight < Piece
+    def valid_moves(&occupying_piece_get)
+      paths = ([-2, 2].product([-1, 1]) +
+               [-1, 1].product([-2, 2]))
+              .map { |move| [move] }
+      validated_moves(paths, occupying_piece_get)
+    end
   end
 
   # Pawn usually moves one space at a time, but can move two spaces as its
