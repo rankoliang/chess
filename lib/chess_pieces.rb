@@ -20,6 +20,11 @@ module Pieces
   # A player loses when the king is put in check mate. The king can move in
   # any direction in one space
   class King < Piece
+    def valid_moves(&occupying_piece_get)
+      paths = [-1, 0, 1].repeated_permutation(2)
+                        .to_set.delete([0, 0]).map { |move| [move] }
+      validated_moves(paths, occupying_piece_get)
+    end
   end
 
   # Knight moves in an 'L' shape
