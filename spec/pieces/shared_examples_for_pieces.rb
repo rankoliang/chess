@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_examples 'a piece' do |expectation_message, subject_position, **positions|
+RSpec.shared_examples 'piece#valid_moves' do |expectation_message, subject_position, **positions|
   let(:position) { subject_position }
   let(:board) { Board.new }
   let(:defending_piece) { instance_double('Piece', player: :black) }
