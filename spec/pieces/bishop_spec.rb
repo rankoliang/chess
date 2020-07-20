@@ -9,31 +9,31 @@ RSpec.describe Pieces::Bishop do
     subject(:bishop) { described_class.new(position: position, player: :white) }
 
     context 'when in starting position' do
-      it_behaves_like 'a piece that moves', that('can move diagonally'),
+      it_behaves_like 'a piece', that('can move diagonally'),
                       'b1', expected_moves: %w[a2 c2 d3 e4 f5 g6 h7]
     end
 
     context 'when in the middle of the board' do
-      it_behaves_like 'a piece that moves',
+      it_behaves_like 'a piece',
                       that('can move diagonally in all directions'),
                       'd4', expected_moves: %w[a7 b6 c5 e5 f6 g7 h8 c3 b2 a1 e3 f2 g1]
     end
 
     context 'when blocked by a friendly piece' do
-      it_behaves_like 'a piece that moves',
+      it_behaves_like 'a piece',
                       that('cannot move past the friendly piece'),
                       'd4', expected_moves: %w[a7 b6 c5 e5 f6 g7 h8 e3 f2 g1], friendly: %w[c3]
     end
 
     context 'when able to capture a piece' do
-      it_behaves_like 'a piece that moves',
+      it_behaves_like 'a piece',
                       that('cannot move past the captured piece'),
                       'd4', expected_moves: %w[c5 e5 f6 g7 h8 c3 b2 a1 e3 f2 g1],
                             enemies: %w[c5]
     end
 
     context 'when blocked and able to capture a piece' do
-      it_behaves_like 'a piece that moves',
+      it_behaves_like 'a piece',
                       that('gets blocked appropriately'),
                       'd4', expected_moves: %w[c5 e5 f6 g7 h8 c3 b2 a1],
                             enemies: %w[c5], friendly: %w[e3]
