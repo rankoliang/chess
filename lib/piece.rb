@@ -74,6 +74,12 @@ class Piece
     off_gen.moves
   end
 
+  # u = up, l = left, d = down, r = right
+  def cardinal_moves(direction)
+    off_gen = CardinalOffsetGenerator.new(coordinates, direction)
+    off_gen.moves
+  end
+
   def validated_moves(paths, occupying_piece_get)
     paths.map do |path|
       moves = block_given? ? yield(path) : path

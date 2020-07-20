@@ -11,7 +11,6 @@ module Pieces
   class Bishop < Piece
     def valid_moves(&occupying_piece_get)
       # iterates through all four diagonal positions
-      # returns the union of the sets
       directions = %w[u d].product(%w[r l]).map(&:join)
       validated_moves(directions, occupying_piece_get) { |direction| diagonal_moves(direction) }
     end
@@ -68,5 +67,10 @@ module Pieces
 
   # The rook can move in any direction vertically or horizontally
   class Rook < Piece
+    def valid_moves(&occupying_piece_get)
+      # iterates through all four diagonal positions
+      directions = %w[u d l r]
+      validated_moves(directions, occupying_piece_get) { |direction| cardinal_moves(direction) }
+    end
   end
 end
