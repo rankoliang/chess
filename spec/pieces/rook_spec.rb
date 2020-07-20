@@ -9,35 +9,31 @@ RSpec.describe Pieces::Rook do
     subject(:rook) { described_class.new(position: position, player: :white) }
 
     context 'when in starting position' do
-      include_context 'a piece', that('can not move'),
-                      'a1', expected_moves: %w[],
-                            friendly: %w[a2 b1]
+      include_context 'a piece', that('returns no moves'),
+                      'a1', expected_moves: %w[], friendly: %w[a2 b1]
     end
 
-    # context 'when in the middle of the board' do
-    #   include_context 'a piece',
-    #                   that('can move diagonally in all directions'),
-    #                   'd4', expected_moves: %w[a7 b6 c5 e5 f6 g7 h8 c3 b2 a1 e3 f2 g1]
-    # end
+    context 'when in the middle of the board' do
+      include_context 'a piece', that('returns moves in the cardinal directions'),
+                      'd4', expected_moves: %w[d1 d2 d3 d5 d6 d7 d8 a4 b4 c4 e4 f4 g4 h4]
+    end
 
-    # context 'when blocked by a friendly piece' do
-    #   include_context 'a piece',
-    #                   that('cannot move past the friendly piece'),
-    #                   'd4', expected_moves: %w[a7 b6 c5 e5 f6 g7 h8 e3 f2 g1], friendly: %w[c3]
-    # end
+    context 'when a piece can be captured' do
+      include_context 'a piece', that('returns some moved blocked'),
+                      'd4', expected_moves: %w[d1 d2 d3 d5 d6 a4 b4 c4 e4 f4 g4 h4],
+                            enemies: %w[d6]
+    end
 
-    # context 'when able to capture a piece' do
-    #   include_context 'a piece',
-    #                   that('cannot move past the captured piece'),
-    #                   'd4', expected_moves: %w[c5 e5 f6 g7 h8 c3 b2 a1 e3 f2 g1],
-    #                         enemies: %w[c5]
-    # end
+    context 'when blocked by a friendly unit' do
+      include_context 'a piece', that('returns some moved blocked'),
+                      'd4', expected_moves: %w[d1 d2 d3 d5 a4 b4 c4 e4 f4 g4 h4],
+                            friendly: %w[d6]
+    end
 
-    # context 'when blocked and able to capture a piece' do
-    #   include_context 'a piece',
-    #                   that('gets blocked appropriately'),
-    #                   'd4', expected_moves: %w[c5 e5 f6 g7 h8 c3 b2 a1],
-    #                         enemies: %w[c5], friendly: %w[e3]
-    # end
+    context 'when blocked by a friendly unit and can capture' do
+      include_context 'a piece', that('returns some moved blocked'),
+                      'd4', expected_moves: %w[d1 d2 d3 d5 a4 b4 c4 e4],
+                            friendly: %w[d6], enemies: %w[e4]
+    end
   end
 end
