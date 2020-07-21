@@ -84,11 +84,11 @@ class Piece
     off_gen.moves
   end
 
-  def validated_moves(paths, occupying_piece_get)
+  def validated_moves(paths, piece_getter)
     paths.map do |path|
       moves = block_given? ? yield(path) : path
       move_validator = MoveValidator.new
-      move_validator.validate(self, moves, &occupying_piece_get)
+      move_validator.validate(self, moves, &piece_getter)
     end.reduce(Set.new, &:union)
   end
 end
