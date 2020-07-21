@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative('../lib/piece')
-require_relative('../lib/chess_config.rb')
-require_relative('../lib/board.rb')
+require_relative '../lib/piece'
+require_relative '../lib/chess_config'
+require_relative '../lib/board'
 
 RSpec.describe Piece do
   describe '#to_s' do

@@ -35,6 +35,10 @@ class Piece
     )
   end
 
+  def enemy
+    { white: :black, black: :white }[player]
+  end
+
   def enemy?(other)
     other.player != player
   rescue NoMethodError

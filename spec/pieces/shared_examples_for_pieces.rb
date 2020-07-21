@@ -3,8 +3,8 @@
 RSpec.shared_examples 'piece#valid_moves' do |expectation_message, subject_position, **positions|
   let(:position) { subject_position }
   let(:board) { Board.new }
-  let(:defending_piece) { instance_double('Piece', player: :black) }
-  let(:friendly_piece) { instance_double('Piece', player: :white) }
+  let(:defending_piece) { instance_double('Piece', player: subject.enemy) }
+  let(:friendly_piece) { instance_double('Piece', player: subject.player) }
   let(:get_position) { proc { |position| board.at(position) } }
 
   before do
