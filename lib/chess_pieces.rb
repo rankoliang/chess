@@ -7,12 +7,15 @@ require_relative 'offset_generator'
 
 # All of the different types of chess pieces
 module Pieces
+  DIAGONAL_DIRECTIONS = %w[u d].product(%w[r l]).map(&:join)
+  CARDINAL_DIRECTIONS = %w[u d l r].freeze
+
   # The bishop can move any number of spaces diagonally.
   class Bishop < Piece
     def valid_moves(&piece_getter)
       # iterates through all four diagonal positions
-      directions = %w[u d].product(%w[r l]).map(&:join)
-      validated_moves(directions, piece_getter) { |direction| diagonal_moves(direction) }
+      paths = proc { |direction| diagonal_paths(direction) }
+      validated_moves(DIAGONAL_DIRECTIONS, piece_getter, &paths)
     end
   end
 
@@ -61,14 +64,23 @@ module Pieces
   # The queen can move in any direction until she takes a piece or is at the
   # edge of the board
   class Queen < Piece
+    def valid_moves(&piece_getter)
+      # union of all moves in the diagonal and cardinal directions
+      [{ directions: CARDINAL_DIRECTIONS,
+         paths: proc { |direction| cardinal_paths(direction) } },
+       { directions: DIAGONAL_DIRECTIONS,
+         paths: proc { |direction| diagonal_paths(direction) } }]
+        .reduce(Set.new) do |set, axis|
+        set + validated_moves(axis[:directions], piece_getter, &axis[:paths])
+      end
+    end
   end
 
   # The rook can move in any direction vertically or horizontally
   class Rook < Piece
     def valid_moves(&piece_getter)
-      # iterates through all four diagonal positions
-      directions = %w[u d l r]
-      validated_moves(directions, piece_getter) { |direction| cardinal_moves(direction) }
+      paths = proc { |direction| cardinal_paths(direction) }
+      validated_moves(CARDINAL_DIRECTIONS, piece_getter, &paths)
     end
   end
 end

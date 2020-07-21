@@ -73,13 +73,13 @@ class Piece
   end
 
   # u = up, l = left, d = down, r = right
-  def diagonal_moves(direction)
+  def diagonal_paths(direction)
     off_gen = DiagonalOffsetGenerator.new(coordinates, direction)
     off_gen.moves
   end
 
   # u = up, l = left, d = down, r = right
-  def cardinal_moves(direction)
+  def cardinal_paths(direction)
     off_gen = CardinalOffsetGenerator.new(coordinates, direction)
     off_gen.moves
   end
