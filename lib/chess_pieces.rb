@@ -42,9 +42,21 @@ module Pieces
   # Pawn usually moves one space at a time, but can move two spaces as its
   # first move. It can take other pieces diagonally.
   class Pawn < Piece
+    def initialize(*args, **kwargs)
+      super
+      self.moved = false
+    end
+
+    def move(new_position)
+      super
+      self.moved = true
+    end
+
     def valid_moves(&piece_getter)
-      move_offsets = { white: [[0, 1], [0, 2]],
-                       black: [[0, -1], [0, -2]] }[player]
+      move_offsets = { false => { white: [[0, 1], [0, 2]],
+                                  black: [[0, -1], [0, -2]] },
+                       true => { white: [[0, 1]],
+                                 black: [[0, -1]] } }[moved?][player]
       # Blocked if the other piece is not a teammate
       move_validator = MoveValidator.new(:AnyPiece, :INTERRUPT)
       move_validator.validate(self, move_offsets, &piece_getter) +
@@ -52,6 +64,9 @@ module Pieces
     end
 
     private
+
+    attr_accessor :moved
+    alias moved? moved
 
     def attack_moves(&piece_getter)
       move_offsets = { white: [[-1, 1], [1, 1]],

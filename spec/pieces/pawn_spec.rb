@@ -16,7 +16,7 @@ RSpec.describe Pieces::Pawn do
 
         let(:position) { 'a2' }
 
-        it 'can move up to two spaces forward' do
+        it 'returns two moves' do
           expect(pawn.valid_moves).to contain_exactly('a3', 'a4')
         end
       end
@@ -26,8 +26,34 @@ RSpec.describe Pieces::Pawn do
 
         let(:position) { 'g7' }
 
-        it 'can move up to two spaces forward' do
+        it 'returns two moves' do
           expect(pawn.valid_moves).to contain_exactly('g6', 'g5')
+        end
+      end
+    end
+
+    context 'when the pawn has moved' do
+      context 'when the pawn is white' do
+        subject(:pawn) { white_pawn }
+
+        let(:position) { 'a3' }
+
+        before { pawn.move(position) }
+
+        it 'returns one move' do
+          expect(pawn.valid_moves).to contain_exactly('a4')
+        end
+      end
+
+      context 'when the pawn is black' do
+        subject(:pawn) { black_pawn }
+
+        let(:position) { 'g6' }
+
+        before { pawn.move(position) }
+
+        it 'returns one move' do
+          expect(pawn.valid_moves).to contain_exactly('g5')
         end
       end
     end
@@ -36,14 +62,14 @@ RSpec.describe Pieces::Pawn do
       context 'when the pawn is white' do
         subject(:pawn) { white_pawn }
 
-        include_examples 'piece#valid_moves', that('can capture diagonally'),
+        include_examples 'piece#valid_moves', that('returns diagonal captures'),
                          'a2', expected_moves: %w[a3 a4 b3], enemies: %w[b3]
       end
 
       context 'when a pawn is black' do
         subject(:pawn) { black_pawn }
 
-        include_examples 'piece#valid_moves', that('can capture diagonally'),
+        include_examples 'piece#valid_moves', that('returns diagonal captures'),
                          'g7', expected_moves: %w[g6 g5 f6], enemies: %w[f6]
       end
     end
@@ -84,14 +110,14 @@ RSpec.describe Pieces::Pawn do
       context 'when the pawn is white' do
         subject(:pawn) { white_pawn }
 
-        include_examples 'piece#valid_moves', that('can only move one space'),
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
                          'a2', expected_moves: %w[a3], enemies: %w[a4]
       end
 
       context 'when a pawn is black' do
         subject(:pawn) { black_pawn }
 
-        include_examples 'piece#valid_moves', that('can only move one space'),
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
                          'g7', expected_moves: %w[g6], enemies: %w[g5]
       end
     end
@@ -100,14 +126,14 @@ RSpec.describe Pieces::Pawn do
       context 'when the pawn is white' do
         subject(:pawn) { white_pawn }
 
-        include_examples 'piece#valid_moves', that('can only capture'),
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
                          'b2', expected_moves: %w[b3 c3], enemies: %w[c3 b4]
       end
 
       context 'when the pawn is black' do
         subject(:pawn) { black_pawn }
 
-        include_examples 'piece#valid_moves', that('can only capture'),
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
                          'g7', expected_moves: %w[g6 h6], enemies: %w[g5 h6]
       end
     end
