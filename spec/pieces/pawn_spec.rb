@@ -3,8 +3,6 @@
 require_relative '../../lib/chess_pieces'
 require_relative '../../lib/board'
 require_relative 'shared_examples_for_pieces'
-
-# rubocop:disable RSpec/NestedGroups
 RSpec.describe Pieces::Pawn do
   describe '#valid_moves' do
     let(:white_pawn) { described_class.new(position: position, player: :white) }
@@ -137,6 +135,26 @@ RSpec.describe Pieces::Pawn do
                          'g7', expected_moves: %w[g6 h6], enemies: %w[g5 h6]
       end
     end
+
+    context 'when pawn can en-passant' do
+      context 'when a black pawn can en passant to the right' do
+        subject(:pawn) { black_pawn }
+
+        before { pawn.en_passant = 'd4' }
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'c4', expected_moves: %w[c3 d3], enemies: %w[c2 d4]
+      end
+
+      # This will be impossible in a real game
+      context 'when a black pawn can en passant to the in both directions' do
+        subject(:pawn) { black_pawn }
+
+        before { pawn.en_passant = 'd4' }
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'c4', expected_moves: %w[c3 c2 d3], enemies: %w[b4 d4]
+      end
+    end
   end
 end
-# rubocop:enable RSpec/NestedGroups

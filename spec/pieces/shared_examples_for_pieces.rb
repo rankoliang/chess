@@ -3,18 +3,18 @@
 RSpec.shared_examples 'piece#valid_moves' do |expectation_message, subject_position, **positions|
   let(:position) { subject_position }
   let(:board) { Board.new }
-  let(:defending_piece) { instance_double('Piece', player: subject.enemy) }
-  let(:friendly_piece) { instance_double('Piece', player: subject.player) }
   let(:get_position) { proc { |position| board.at(position) } }
 
   before do
     allow(board).to receive(:at).and_call_original
     positions.default = []
-    positions[:enemies].each do |opp_pos|
-      allow(board).to receive(:at).with(opp_pos).and_return(defending_piece)
+    positions[:enemies].each do |position|
+      defending_piece = instance_double('Piece', player: subject.enemy, position: position)
+      allow(board).to receive(:at).with(position).and_return(defending_piece)
     end
-    positions[:friendly].each do |friend_pos|
-      allow(board).to receive(:at).with(friend_pos).and_return(friendly_piece)
+    positions[:friendly].each do |position|
+      friendly_piece = instance_double('Piece', player: subject.player, position: position)
+      allow(board).to receive(:at).with(position).and_return(friendly_piece)
     end
   end
 

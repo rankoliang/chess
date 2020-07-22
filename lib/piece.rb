@@ -58,6 +58,14 @@ class Piece
     false
   end
 
+  protected
+
+  # TODO: optimize by caching this result (wishlist)
+  def coordinates
+    column_index, row_index = *Board.notation_to_coord(position)
+    OpenStruct.new(column: column_index, row: row_index)
+  end
+
   private
 
   attr_reader :board
@@ -65,12 +73,6 @@ class Piece
 
   def type
     self.class.to_s.split('::').last.to_sym
-  end
-
-  # TODO: optimize by caching this result (wishlist)
-  def coordinates
-    column_index, row_index = *Board.notation_to_coord(position)
-    OpenStruct.new(column: column_index, row: row_index)
   end
 
   # u = up, l = left, d = down, r = right
