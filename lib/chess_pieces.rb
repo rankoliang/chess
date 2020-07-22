@@ -53,14 +53,10 @@ module Pieces
     end
 
     def valid_moves(&piece_getter)
-      move_offsets = { false => { white: [[0, 1], [0, 2]],
-                                  black: [[0, -1], [0, -2]] },
-                       true => { white: [[0, 1]],
-                                 black: [[0, -1]] } }[moved?][player]
       # Blocked if the other piece is not a teammate
       move_validator = MoveValidator.new(:AnyPiece, :INTERRUPT)
       move_validator.validate(self, move_offsets, &piece_getter) +
-        attack_moves(&piece_getter)
+        valid_capture_moves(&piece_getter)
     end
 
     private
@@ -68,11 +64,25 @@ module Pieces
     attr_accessor :moved
     alias moved? moved
 
-    def attack_moves(&piece_getter)
-      move_offsets = { white: [[-1, 1], [1, 1]],
-                       black: [[-1, -1], [1, -1]] }[player]
+    def valid_capture_moves(&piece_getter)
       move_validator = MoveValidator.new(:NonEnemy, :CONTINUE)
-      move_validator.validate(self, move_offsets, &piece_getter)
+      move_validator.validate(self, capture_move_offsets, &piece_getter)
+    end
+
+    def move_offsets
+      case moved?
+      when false
+        { white: [[0, 1], [0, 2]],
+          black: [[0, -1], [0, -2]] }
+      when true
+        { white: [[0, 1]],
+          black: [[0, -1]] }
+      end[player]
+    end
+
+    def capture_move_offsets
+      { white: [[-1, 1], [1, 1]],
+        black: [[-1, -1], [1, -1]] }[player]
     end
   end
 
