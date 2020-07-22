@@ -3,6 +3,8 @@
 require_relative '../../lib/chess_pieces'
 require_relative '../../lib/board'
 require_relative 'shared_examples_for_pieces'
+
+# rubocop:disable RSec/NestedGroups
 RSpec.describe Pieces::Pawn do
   describe '#valid_moves' do
     let(:white_pawn) { described_class.new(position: position, player: :white) }
@@ -140,21 +142,80 @@ RSpec.describe Pieces::Pawn do
       context 'when a black pawn can en passant to the right' do
         subject(:pawn) { black_pawn }
 
-        before { pawn.en_passant = 'd4' }
+        before do
+          black_pawn.move(position)
+          pawn.en_passant = 'd4'
+        end
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'c4', expected_moves: %w[c3 d3], enemies: %w[b4 d4]
 
         include_examples 'piece#valid_moves', that('returns unblocked moves'),
                          'c4', expected_moves: %w[c3 d3], enemies: %w[c2 d4]
-      end
-
-      # This will be impossible in a real game
-      context 'when a black pawn can en passant to the in both directions' do
-        subject(:pawn) { black_pawn }
-
-        before { pawn.en_passant = 'd4' }
 
         include_examples 'piece#valid_moves', that('returns unblocked moves'),
-                         'c4', expected_moves: %w[c3 c2 d3], enemies: %w[b4 d4]
+                         'c4', expected_moves: %w[d3], enemies: %w[c3 b4 d4]
+      end
+
+      context 'when a black pawn can en passant to left' do
+        subject(:pawn) { black_pawn }
+
+        before do
+          black_pawn.move(position)
+          pawn.en_passant = 'b4'
+        end
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'c4', expected_moves: %w[c3 b3], enemies: %w[c2 b4]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'c4', expected_moves: %w[c3 b3], enemies: %w[c4 b4]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'c4', expected_moves: %w[b3], enemies: %w[c4 c3 b4]
+      end
+
+      context 'when a white pawn can en passant to the right' do
+        subject(:pawn) { white_pawn }
+
+        before do
+          pawn.move(position)
+          pawn.en_passant = 'e5'
+        end
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[e6 d6], enemies: %w[e5]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[e6 d6], enemies: %w[c5 e5]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[e6], enemies: %w[d6 e5]
+      end
+
+      context 'when a white pawn can en passant to left' do
+        subject(:pawn) { white_pawn }
+
+        before do
+          pawn.move(position)
+          pawn.en_passant = 'c5'
+        end
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[c6 d6], enemies: %w[c5]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[c6 d6], enemies: %w[c5 e5]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[c6], enemies: %w[c5 e5 d6]
+
+        include_examples 'piece#valid_moves', that('returns unblocked moves'),
+                         'd5', expected_moves: %w[c6 e6], enemies: %w[c5 e5 d6 e6]
       end
     end
   end
 end
+# rubocop:disable Lint/RedundantCopEnableDirective
+# rubocop:enable RSpec/NestedGroups
+# rubocop:enable Lint/RedundantCopEnableDirective
