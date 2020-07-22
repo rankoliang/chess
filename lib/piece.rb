@@ -22,9 +22,10 @@ class Piece
   end
 
   # Moves a piece to any space with no restrictions
-  def move(new_position, board)
-    board.move_piece(new_position, self)
+  def move(new_position)
+    yield(new_position, self) if block_given?
     self.position = new_position
+    nil
   end
 
   def offset_position(move)

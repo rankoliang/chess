@@ -30,17 +30,22 @@ RSpec.describe Piece do
 
     shared_examples 'position changes' do
       it {
-        expect { piece.move(new_position, board) }.to change(piece, :position)
-          .from(original_position).to new_position
+        expect { piece.move(new_position) { |new_position, piece| board.move_piece(new_position, piece) } }
+          .to change(piece, :position) .from(original_position).to new_position
       }
     end
     context 'when the piece is not on the board' do
       let(:original_position) { nil }
       let(:new_position) { 'D5' }
       let(:board) { Board.new }
+      let(:move_piece) do
+        piece.move(new_position) do |new_position, piece|
+          board.move_piece(new_position, piece)
+        end
+      end
 
       it do
-        expect { piece.move(new_position, board) }
+        expect { move_piece }
           .to(change { board.at(new_position) }.from(nil).to(piece))
       end
 
@@ -55,7 +60,7 @@ RSpec.describe Piece do
       before { board.set(original_position, piece) }
 
       it do
-        expect { piece.move(new_position, board) }
+        expect { piece.move(new_position) { |new_position, piece| board.move_piece(new_position, piece) } }
           .to(change { board.at(original_position) }.from(piece).to(nil)
           .and(change { board.at(new_position) }.from(nil).to(piece)))
       end

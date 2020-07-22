@@ -25,7 +25,7 @@ class Chess
     piece = board.at(from)
     return false unless piece
 
-    piece.move(to, board)
+    piece.move(to) { |new_position| board.move_piece(new_position, piece) }
 
     update_pieces(from, to, piece)
   end
