@@ -23,10 +23,10 @@ class OffsetGenerator
 
   private
 
-  attr_accessor :coordinates, :steps, :offset
+  attr_accessor :coordinates, :steps, :offset, :directions
 
   def step_directions
-    raise NotImplementedError
+    @step_directions ||= { vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 } }
   end
 
   def generate_moves
@@ -57,14 +57,6 @@ class DiagonalOffsetGenerator < OffsetGenerator
     # (u, l, r, d) is mapped to vertical or horizonal
     self.directions = Hash[%i[vert hor].zip(direction.split('').map(&:to_sym))]
   end
-
-  private
-
-  attr_accessor :directions
-
-  def step_directions
-    @step_directions ||= { vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 } }
-  end
 end
 
 # Generates offsets in the cardinal directions
@@ -76,13 +68,5 @@ class CardinalOffsetGenerator < OffsetGenerator
                       when /u|d/ then { vert: direction }
                       when /r|l/ then { hor: direction }
                       end
-  end
-
-  private
-
-  attr_accessor :directions
-
-  def step_directions
-    @step_directions ||= { vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 } }
   end
 end

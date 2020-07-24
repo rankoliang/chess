@@ -22,9 +22,10 @@ class Piece
   end
 
   # Moves a piece to any space with no restrictions
-  def move(new_position, board)
-    board.move_piece(new_position, self)
+  def move(new_position)
+    yield(new_position, self) if block_given?
     self.position = new_position
+    nil
   end
 
   def offset_position(move)
@@ -57,6 +58,14 @@ class Piece
     false
   end
 
+  protected
+
+  # TODO: optimize by caching this result (wishlist)
+  def coordinates
+    column_index, row_index = *Board.notation_to_coord(position)
+    OpenStruct.new(column: column_index, row: row_index)
+  end
+
   private
 
   attr_reader :board
@@ -66,20 +75,14 @@ class Piece
     self.class.to_s.split('::').last.to_sym
   end
 
-  # TODO: optimize by caching this result (wishlist)
-  def coordinates
-    column_index, row_index = *Board.notation_to_coord(position)
-    OpenStruct.new(column: column_index, row: row_index)
-  end
-
   # u = up, l = left, d = down, r = right
-  def diagonal_moves(direction)
+  def diagonal_paths(direction)
     off_gen = DiagonalOffsetGenerator.new(coordinates, direction)
     off_gen.moves
   end
 
   # u = up, l = left, d = down, r = right
-  def cardinal_moves(direction)
+  def cardinal_paths(direction)
     off_gen = CardinalOffsetGenerator.new(coordinates, direction)
     off_gen.moves
   end
