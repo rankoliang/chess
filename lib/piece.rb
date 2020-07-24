@@ -92,6 +92,6 @@ class Piece
       moves = block_given? ? yield(path) : path
       move_validator = MoveValidator.new
       move_validator.validate(self, moves, &piece_getter)
-    end.reduce(Set.new, &:union)
+    end.reduce({}, &:merge)
   end
 end

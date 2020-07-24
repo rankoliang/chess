@@ -14,13 +14,13 @@ class MoveValidator
 
   def validate(piece, moves, &piece_get)
     catch :validated do
-      moves.each_with_object(Set.new) do |move, validated|
+      moves.each_with_object({}) do |move, validated|
         future_position, contesting_piece =
           contesting(move, validated, piece, &piece_get)
         if blocking_strategy.blocked(piece, contesting_piece)
           rescue_strategy.call(validated)
         else
-          validated << future_position
+          validated[future_position] = :test_value
         end
       end
     end
@@ -111,7 +111,7 @@ module BlockingStrategy
 end
 
 module RescueStrategy
-  INTERRUPT = proc { |validated| throw :validated, validated.to_set }
+  INTERRUPT = proc { |validated| throw :validated, validated }
   CONTINUE = proc { next }
 end
 

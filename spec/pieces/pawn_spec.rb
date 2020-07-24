@@ -6,7 +6,7 @@ require_relative 'shared_examples_for_pieces'
 
 # rubocop:disable RSec/NestedGroups
 RSpec.describe Pieces::Pawn do
-  describe '#valid_moves' do
+  describe '#valid_moves.keys' do
     let(:white_pawn) { described_class.new(position: position, player: :white) }
     let(:black_pawn) { described_class.new(position: position, player: :black) }
 
@@ -17,7 +17,7 @@ RSpec.describe Pieces::Pawn do
         let(:position) { 'a2' }
 
         it 'returns two moves' do
-          expect(pawn.valid_moves).to contain_exactly('a3', 'a4')
+          expect(pawn.valid_moves.keys).to contain_exactly('a3', 'a4')
         end
       end
 
@@ -27,7 +27,7 @@ RSpec.describe Pieces::Pawn do
         let(:position) { 'g7' }
 
         it 'returns two moves' do
-          expect(pawn.valid_moves).to contain_exactly('g6', 'g5')
+          expect(pawn.valid_moves.keys).to contain_exactly('g6', 'g5')
         end
       end
     end
@@ -41,7 +41,7 @@ RSpec.describe Pieces::Pawn do
         before { pawn.move(position) }
 
         it 'returns one move' do
-          expect(pawn.valid_moves).to contain_exactly('a4')
+          expect(pawn.valid_moves.keys).to contain_exactly('a4')
         end
       end
 
@@ -53,7 +53,7 @@ RSpec.describe Pieces::Pawn do
         before { pawn.move(position) }
 
         it 'returns one move' do
-          expect(pawn.valid_moves).to contain_exactly('g5')
+          expect(pawn.valid_moves.keys).to contain_exactly('g5')
         end
       end
     end

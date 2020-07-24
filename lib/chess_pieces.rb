@@ -59,9 +59,9 @@ module Pieces
 
     def valid_moves(&piece_getter)
       # Blocked if the other piece is not a teammate
-      move_validator.validate(self, move_offsets, &piece_getter) +
-        valid_capture_moves(&piece_getter) +
-        valid_en_passant_moves(&piece_getter)
+      move_validator.validate(self, move_offsets, &piece_getter)
+                    .merge(valid_capture_moves(&piece_getter))
+                    .merge(valid_en_passant_moves(&piece_getter))
     end
 
     private
@@ -72,18 +72,18 @@ module Pieces
     alias moved? moved
 
     def valid_capture_moves(&piece_getter)
-      capture_move_offset_paths.reduce(Set.new) do |moves, path|
-        moves + capture_validator.validate(self, path, &piece_getter)
+      capture_move_offset_paths.reduce({}) do |moves, path|
+        moves.merge(capture_validator.validate(self, path, &piece_getter))
       end
     end
 
     def valid_en_passant_moves(&piece_getter)
       if en_passant
-        capture_move_offset_paths.reduce(Set.new) do |moves, path|
-          moves + en_passant_validator.validate(self, path, &piece_getter)
+        capture_move_offset_paths.reduce({}) do |moves, path|
+          moves.merge(en_passant_validator.validate(self, path, &piece_getter))
         end
       else
-        Set.new
+        {}
       end
     end
 
@@ -113,8 +113,8 @@ module Pieces
          paths: proc { |direction| cardinal_paths(direction) } },
        { directions: DIAGONAL_DIRECTIONS,
          paths: proc { |direction| diagonal_paths(direction) } }]
-        .reduce(Set.new) do |set, axis|
-        set + validated_moves(axis[:directions], piece_getter, &axis[:paths])
+        .reduce({}) do |moves, axis|
+        moves.merge(validated_moves(axis[:directions], piece_getter, &axis[:paths]))
       end
     end
   end

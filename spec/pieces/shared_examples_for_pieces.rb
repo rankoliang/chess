@@ -20,7 +20,7 @@ RSpec.shared_examples 'piece#valid_moves' do |expectation_message, subject_posit
     end
 
     it expectation_message do
-      expect(subject.valid_moves(&get_position))
+      expect(subject.valid_moves(&get_position).keys)
         .to contain_exactly(*positions[:expected_moves])
     end
   end
