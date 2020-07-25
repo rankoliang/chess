@@ -19,7 +19,7 @@ class MoveValidator
           contesting(move, validated, piece, &piece_get)
         if blocking_strategy.blocked(piece, contesting_piece)
           rescue_strategy.call(validated)
-        else
+        elsif future_position
           validated[future_position] = :test_value
         end
       end
