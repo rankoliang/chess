@@ -2,6 +2,11 @@
 
 require_relative '../lib/move_validator'
 require_relative '../lib/piece'
+require_relative './helpers'
+
+RSpec.configure do |c|
+  c.include Helpers
+end
 
 RSpec.describe MoveValidator do
   describe '#validate' do
@@ -59,11 +64,5 @@ RSpec.describe MoveValidator do
         )
       end
     end
-  end
-end
-
-def move_hash_generate(positions, move_info)
-  positions.each_with_object({}) do |move, moves|
-    moves[move] = move_info
   end
 end

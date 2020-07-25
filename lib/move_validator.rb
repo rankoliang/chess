@@ -51,6 +51,7 @@ module BlockingStrategy
       self.move_type = :unblocked
     end
 
+    # TODO: rename this method
     def blocked(main, other)
       if move_type == :capture
         self.move_type = :blocked
