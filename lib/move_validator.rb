@@ -17,10 +17,9 @@ class MoveValidator
       moves.each_with_object({}) do |move, validated|
         future_position, contesting_piece =
           contesting(move, validated, piece, &piece_get)
-        if blocking_strategy.blocked(piece, contesting_piece)
-          rescue_strategy.call(validated)
-        elsif future_position
-          validated[future_position] = :test_value
+        if future_position
+          blocking_strategy.blocked(piece, contesting_piece)
+          validated[future_position] = blocking_strategy.move_info
         end
       end
     end
@@ -49,10 +48,12 @@ module BlockingStrategy
   class Standard
     def initialize
       self.capture = false
+      self.level = 0
+      self.move_type = :unblocked
     end
 
     def blocked(main, other)
-      return true if capture
+      return handle_capture(other) if capture
 
       if main.enemy? other
         self.capture = true
@@ -62,9 +63,18 @@ module BlockingStrategy
       end
     end
 
+    def move_info
+      { type: move_type, piece: blocking_piece, level: level }
+    end
+
     private
 
-    attr_accessor :capture
+    attr_accessor :capture, :level, :blocking_piece, :move_type
+    def handle_capture(other)
+      self.blocking_piece = other
+      self.type = :capture
+      true
+    end
   end
 
   # Blocked by any piece
