@@ -47,33 +47,38 @@ module BlockingStrategy
   # Blocked by friendly units and after a capture
   class Standard
     def initialize
-      self.capture = false
-      self.level = 0
+      self.blocking_level = 0
       self.move_type = :unblocked
     end
 
     def blocked(main, other)
-      return handle_capture(other) if capture
-
+      if move_type == :capture
+        self.move_type = :blocked
+        self.blocking_level += 1
+      end
       if main.enemy? other
-        self.capture = true
-        false
-      else
-        main.friendly? other
+        handle_capture other
+      elsif main.friendly? other
+        handle_friendly other
       end
     end
 
     def move_info
-      { type: move_type, piece: blocking_piece, level: level }
+      { type: move_type, piece: blocking_piece, level: blocking_level }
     end
 
     private
 
-    attr_accessor :capture, :level, :blocking_piece, :move_type
+    attr_accessor :capture, :blocking_level, :blocking_piece, :move_type
     def handle_capture(other)
       self.blocking_piece = other
       self.type = :capture
-      true
+    end
+
+    def handle_friendly(other)
+      self.move_type = :blocked
+      self.blocking_level += 1
+      self.blocking_piece = other
     end
   end
 
