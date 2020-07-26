@@ -12,7 +12,7 @@ RSpec.describe MoveValidator do
   describe '#validate' do
     subject(:validator) { described_class.new(:Standard, :CONTINUE) }
 
-    RSpec.shared_context 'validator' do |subject_position, player_color = :white, **positions|
+    RSpec.shared_context 'when validating' do |subject_position, player_color = :white, **positions|
       let(:position) { subject_position }
       let(:board) { Board.new }
       let(:piece_get) { proc { |position| board.at(position) } }
@@ -38,30 +38,85 @@ RSpec.describe MoveValidator do
     # before { puts valid_moves }
 
     context 'when blocked by nothing' do
-      include_context 'validator', 'a1'
+      include_context 'when validating', 'a1'
       let(:moves) { (1..9).map { |i| [0, i] } }
       let(:move_list) { %w[a2 a3 a4 a5 a6 a7 a8] }
 
       it 'returns all moves' do
         expect(valid_moves).to eq(
-          move_hash_generate(move_list, { type: :unblocked, piece: nil, level: 0 })
+          move_hash_generate(move_list, { type: :free, piece: nil, level: 0 })
         )
       end
     end
 
-    context 'when blocked by an enemy' do
-      include_context 'validator', 'a1', friendly: %w[a5]
+    context 'when blocked by an friendly unit' do
+      include_context 'when validating', 'a1', friendly: %w[a5]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :unblocked, piece: nil, level: 0 } }
-      let(:blocked_move) { { type: :blocked, piece: piece_get.call('a5'), level: 1 } }
+      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       it 'returns all moves' do
         expect(valid_moves).to eq(
           move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-            move_hash_generate(%w[a5 a6 a7 a8], blocked_move)
+            move_hash_generate(%w[a5 a6 a7 a8], move(:free, 'a5', 1))
           )
         )
+      end
+    end
+
+    context 'when blocked by two friendly units' do
+      include_context 'when validating', 'a1', friendly: %w[a5 a7]
+
+      let(:moves) { (1..8).map { |i| [0, i] } }
+      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
+
+      let(:expected_moves) do
+        move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
+          move_hash_generate(%w[a5 a6], move(:free, 'a5', 1)),
+          move_hash_generate(%w[a7 a8], move(:free, 'a7', 2))
+        )
+      end
+
+      it 'returns all moves' do
+        expect(valid_moves).to eq(expected_moves)
+      end
+    end
+
+    context 'when blocked by an enemy unit' do
+      include_context 'when validating', 'a1', enemies: %w[a5]
+
+      let(:moves) { (1..8).map { |i| [0, i] } }
+      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
+
+      let(:expected_moves) do
+        move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
+          { 'a5' => move(:capture, 'a5', 0) },
+          move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1))
+        )
+      end
+
+      it 'returns all moves' do
+        expect(valid_moves).to eq(expected_moves)
+      end
+    end
+
+    context 'when blocked by two enemy units' do
+      include_context 'when validating', 'a1', enemies: %w[a5 a7]
+
+      let(:moves) { (1..8).map { |i| [0, i] } }
+      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
+
+      let(:expected_moves) do
+        move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
+          { 'a5' => move(:capture, 'a5', 0),
+            'a6' => move(:free, 'a5', 1),
+            'a7' => move(:capture, 'a7', 1),
+            'a8' => move(:free, 'a7', 2) }
+        )
+      end
+
+      it 'returns all moves' do
+        expect(valid_moves).to eq(expected_moves)
       end
     end
   end

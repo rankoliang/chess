@@ -17,10 +17,7 @@ class MoveValidator
       moves.each_with_object({}) do |move, validated|
         future_position, contesting_piece =
           contesting(move, validated, piece, &piece_get)
-        if future_position
-          blocking_strategy.blocked(piece, contesting_piece)
-          validated[future_position] = blocking_strategy.move_info
-        end
+        validated[future_position] = blocking_strategy.move_info(piece, contesting_piece) if future_position
       end
     end
   end
@@ -42,19 +39,19 @@ class MoveValidator
   end
 end
 
+# TODO: consider renaming module
 # Checks if a piece blocks another piece
 module BlockingStrategy
   # Blocked by friendly units and after a capture
   class Standard
     def initialize
       self.blocking_level = 0
-      self.move_type = :unblocked
+      self.move_type = :free
     end
 
-    # TODO: rename this method
-    def blocked(main, other)
+    def move_info(main, other)
       if move_type == :capture
-        self.move_type = :blocked
+        self.move_type = :free
         self.blocking_level += 1
       end
       if main.enemy? other
@@ -62,9 +59,6 @@ module BlockingStrategy
       elsif main.friendly? other
         handle_friendly other
       end
-    end
-
-    def move_info
       { type: move_type, piece: blocking_piece, level: blocking_level }
     end
 
@@ -73,11 +67,11 @@ module BlockingStrategy
     attr_accessor :capture, :blocking_level, :blocking_piece, :move_type
     def handle_capture(other)
       self.blocking_piece = other
-      self.type = :capture
+      self.move_type = :capture
     end
 
     def handle_friendly(other)
-      self.move_type = :blocked
+      self.move_type = :free
       self.blocking_level += 1
       self.blocking_piece = other
     end

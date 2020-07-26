@@ -8,4 +8,10 @@ module Helpers
       moves[move] = move_info
     end
   end
+
+  def move(type, piece_location, level)
+    { type: type,
+      piece: piece_get.call(piece_location),
+      level: level }
+  end
 end
