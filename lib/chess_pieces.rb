@@ -43,30 +43,17 @@ module Pieces
   # first move. It can take other pieces diagonally.
   class Pawn < Piece
     attr_accessor :en_passant
-
-    def initialize(*args, **kwargs)
-      super
-      self.moved = false
-    end
-
-    def move(new_position)
-      super
-      self.moved = true
-    end
-
     def all_moves(&piece_getter)
       # Blocked if the other piece is not a teammate
       move_validator = MoveValidator.new(:PawnMove)
       move_validator.validate(self, move_offsets, &piece_getter)
-                    .merge(valid_capture_moves(&piece_getter))
-                    .merge(valid_en_passant_moves(&piece_getter))
+                    .merge(
+                      valid_capture_moves(&piece_getter),
+                      valid_en_passant_moves(&piece_getter)
+                    )
     end
 
     private
-
-    # en_passant_direction is :left or :right
-    attr_accessor :moved
-    alias moved? moved
 
     def valid_capture_moves(&piece_getter)
       capture_validator = MoveValidator.new(:PawnCapture)
@@ -76,13 +63,11 @@ module Pieces
     end
 
     def valid_en_passant_moves(&piece_getter)
+      return {} unless en_passant
+
       en_passant_validator = MoveValidator.new(:EnPassant, :EnPassant)
-      if en_passant
-        capture_move_offset_paths.reduce({}) do |moves, path|
-          moves.merge(en_passant_validator.validate(self, path, &piece_getter))
-        end
-      else
-        {}
+      capture_move_offset_paths.reduce({}) do |moves, path|
+        moves.merge(en_passant_validator.validate(self, path, &piece_getter))
       end
     end
 

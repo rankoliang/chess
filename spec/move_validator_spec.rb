@@ -12,6 +12,10 @@ RSpec.describe MoveValidator do
   describe '#validate' do
     subject(:validator) { described_class.new(:Standard) }
 
+    let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: true, movable: true } }
+    let(:piece) { Piece.new(position: position, player: player_color) }
+    let(:valid_moves) { validator.validate(piece, moves, &piece_get) }
+
     RSpec.shared_context 'when validating' do |subject_position, player_color = :white, **positions|
       let(:position) { subject_position }
       let(:board) { Board.new }
@@ -32,9 +36,6 @@ RSpec.describe MoveValidator do
       end
     end
 
-    let(:piece) { Piece.new(position: position, player: player_color) }
-    let(:valid_moves) { validator.validate(piece, moves, &piece_get) }
-
     # before { puts valid_moves }
 
     context 'when blocked by nothing' do
@@ -44,7 +45,7 @@ RSpec.describe MoveValidator do
 
       it 'returns all moves' do
         expect(valid_moves).to eq(
-          move_hash_generate(move_list, { type: :free, piece: nil, level: 0 })
+          move_hash_generate(move_list, { type: :free, piece: nil, level: 0, capturable: true, movable: true })
         )
       end
     end
@@ -53,7 +54,6 @@ RSpec.describe MoveValidator do
       include_context 'when validating', 'a1', friendly: %w[a5]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       it 'returns all moves' do
         expect(valid_moves).to eq(
@@ -68,7 +68,6 @@ RSpec.describe MoveValidator do
       include_context 'when validating', 'a1', friendly: %w[a5 a7]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
@@ -88,7 +87,6 @@ RSpec.describe MoveValidator do
       include_context 'when validating', 'a1', enemies: %w[a5]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
@@ -106,7 +104,6 @@ RSpec.describe MoveValidator do
       include_context 'when validating', 'a1', enemies: %w[a5 a7]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
@@ -126,7 +123,6 @@ RSpec.describe MoveValidator do
       include_context 'when validating', 'a1', enemies: %w[a5], friendly: %w[a7]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
@@ -146,7 +142,6 @@ RSpec.describe MoveValidator do
       include_context 'when validating', 'a1', enemies: %w[a7], friendly: %w[a5]
 
       let(:moves) { (1..8).map { |i| [0, i] } }
-      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(

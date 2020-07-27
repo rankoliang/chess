@@ -52,17 +52,24 @@ module BlockingStrategy
     def initialize
       self.blocking_level = 0
       self.move_type = :free
+      # the piece can capture an enemy piece at this block
+      self.capturable = true
+      # the piece can move to this position freely
+      self.movable = true
     end
 
     def move_info(main, other)
       post_capture_update
       move_info_update(main, other)
-      { type: move_type, piece: piece, level: blocking_level } if move_type
+      return unless move_type
+
+      { type: move_type, piece: piece, level: blocking_level,
+        capturable: capturable, movable: movable }
     end
 
     private
 
-    attr_accessor :capture, :blocking_level, :piece, :move_type
+    attr_accessor :capture, :blocking_level, :piece, :move_type, :capturable, :movable
 
     def post_capture_update
       return if move_type == :free
@@ -93,6 +100,11 @@ module BlockingStrategy
 
   # Blocked by any piece
   class PawnMove < Standard
+    def initialize
+      super
+      self.capturable = false
+    end
+
     private
 
     def move_info_update(_main, other)
@@ -102,6 +114,11 @@ module BlockingStrategy
 
   # captures if opposing piece is an enemy
   class PawnCapture < Standard
+    def initialize
+      super
+      self.movable = false
+    end
+
     private
 
     def move_info_update(main, other)
@@ -115,6 +132,11 @@ module BlockingStrategy
 
   # Blocked if not an EnPassant pair
   class EnPassant < Standard
+    def initialize
+      super
+      self.movable = false
+    end
+
     private
 
     def move_info_update(main, other)

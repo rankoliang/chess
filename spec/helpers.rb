@@ -9,9 +9,11 @@ module Helpers
     end
   end
 
-  def move(type, piece_location, level)
+  def move(type, piece_location, level, capturable: true, movable: true)
     { type: type,
       piece: piece_get.call(piece_location),
-      level: level }
+      level: level,
+      capturable: capturable,
+      movable: movable }
   end
 end

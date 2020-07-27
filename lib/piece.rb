@@ -6,11 +6,12 @@ require_relative 'chess_config'
 
 # Base class that chess pieces inherit from
 class Piece
-  attr_reader :position, :player
+  attr_reader :position, :player, :moved
   # position is an array in the format [column_index, row_index]
   def initialize(position: nil, player: nil)
     self.player = player
     self.position = position
+    self.moved = false
   end
 
   # Outputs the piece's unicode character
@@ -25,6 +26,7 @@ class Piece
   def move(new_position)
     yield(new_position, self) if block_given?
     self.position = new_position
+    self.moved = true
     nil
   end
 
@@ -73,7 +75,8 @@ class Piece
   private
 
   attr_reader :board
-  attr_writer :position, :player, :board, :coordinates
+  attr_writer :position, :player, :board, :coordinates, :moved
+  alias moved? moved
 
   def type
     self.class.to_s.split('::').last.to_sym
