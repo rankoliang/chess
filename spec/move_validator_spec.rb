@@ -3,6 +3,7 @@
 require_relative '../lib/move_validator'
 require_relative '../lib/piece'
 require_relative './helpers'
+require_relative '../lib/chess_pieces'
 
 RSpec.configure do |c|
   c.include Helpers
@@ -24,6 +25,7 @@ RSpec.describe MoveValidator do
 
       before do
         allow(board).to receive(:at).and_call_original
+        allow(board).to receive(:at).with(piece.position).and_return(piece)
         positions.default = []
         positions[:enemies].each do |position|
           defending_piece = instance_double('Piece', player: piece.enemy, position: position)
@@ -35,8 +37,6 @@ RSpec.describe MoveValidator do
         end
       end
     end
-
-    # before { puts valid_moves }
 
     context 'when blocked by nothing' do
       include_context 'when validating', 'a1'
@@ -154,6 +154,97 @@ RSpec.describe MoveValidator do
 
       it 'returns all moves' do
         expect(valid_moves).to eq(expected_moves)
+      end
+    end
+
+    context 'when the blocking strategy is PawnMove' do
+      context 'when blocked by an enemy unit' do
+        subject(:validator) { described_class.new(:PawnMove) }
+
+        include_context 'when validating', 'a2', enemies: %w[a4]
+
+        let(:moves) { (1..2).map { |i| [0, i] } }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+
+        let(:expected_moves) do
+          { 'a3' => unblocked_move,
+            'a4' => move(:blocked, 'a4', 1, capturable: false, movable: true) }
+        end
+
+        it 'returns all moves' do
+          expect(valid_moves).to eq(expected_moves)
+        end
+      end
+
+      context 'when blocked by multiple units' do
+        subject(:validator) { described_class.new(:PawnMove) }
+
+        include_context 'when validating', 'a2', enemies: %w[a3], friendly: %w[a4]
+
+        let(:moves) { (1..2).map { |i| [0, i] } }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+
+        let(:expected_moves) do
+          { 'a3' => move(:blocked, 'a3', 1, capturable: false),
+            'a4' => move(:blocked, 'a4', 2, capturable: false) }
+        end
+
+        it 'returns all moves' do
+          expect(valid_moves).to eq(expected_moves)
+        end
+      end
+    end
+
+    context 'when the blocking strategy is PawnCapture' do
+      context 'when blocked by an enemy unit' do
+        subject(:validator) { described_class.new(:PawnCapture) }
+
+        include_context 'when validating', 'b2', enemies: %w[a3]
+
+        let(:moves) { [[[-1, 1]], [[1, 1]]] }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+        let(:valid_moves) do
+          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(piece, path, &piece_get)) }
+        end
+
+        let(:expected_moves) do
+          { 'a3' => move(:capture, 'a3', 0, movable: false),
+            'c3' => { type: :blocked, piece: nil,
+                      level: 1, capturable: true, movable: false } }
+        end
+
+        it 'returns all moves' do
+          expect(valid_moves).to eq(expected_moves)
+        end
+      end
+    end
+
+    context 'when the blocking strategy is EnPassant' do
+      context 'when blocked by an enemy unit' do
+        subject(:validator) { described_class.new(:EnPassant) }
+
+        include_context 'when validating', 'e5', enemies: %w[f6]
+
+        let(:moves) { [[[-1, 1]], [[1, 1]]] }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+        let(:valid_moves) do
+          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(piece, path, &piece_get)) }
+        end
+        let(:expected_moves) do
+          { 'f6' => move(:en_passant, 'f6', 0, movable: false),
+            'd6' => { type: :blocked, piece: nil,
+                      level: 1, capturable: true, movable: false } }
+        end
+        let(:piece) { Pieces::Pawn.new(position: position, player: player_color) }
+
+        before do
+          piece.move(position)
+          piece.en_passant = 'f6'
+        end
+
+        it 'returns all moves' do
+          expect(valid_moves).to eq(expected_moves)
+        end
       end
     end
   end

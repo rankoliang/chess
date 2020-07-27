@@ -62,7 +62,9 @@ class Piece
 
   def valid_moves(&piece_getter)
     # selects all level 0 moves (moves that are either a capture or a free move)
-    all_moves(&piece_getter).select { |_, move_info| move_info && move_info[:level].zero? }
+    all_moves(&piece_getter).select do |_, move_info|
+      move_info && move_info[:level].zero?
+    end
   end
 
   protected

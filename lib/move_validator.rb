@@ -69,7 +69,8 @@ module BlockingStrategy
 
     private
 
-    attr_accessor :capture, :blocking_level, :piece, :move_type, :capturable, :movable
+    attr_accessor :capture, :blocking_level, :piece,
+                  :move_type, :capturable, :movable
 
     def post_capture_update
       return if move_type == :free
@@ -125,7 +126,7 @@ module BlockingStrategy
       if main.enemy? other
         capture_update(other)
       else
-        self.move_type = nil
+        block_update(other)
       end
     end
   end
@@ -140,11 +141,11 @@ module BlockingStrategy
     private
 
     def move_info_update(main, other)
-      if main.en_passant == other.position
+      if main.en_passant == other&.position
         self.piece = other
         self.move_type = :en_passant
       else
-        self.move_type = nil
+        block_update(other)
       end
     end
   end
@@ -167,7 +168,7 @@ module PositionStrategy
     def self.future_position(original_piece, _move)
       coordinates = Board.notation_to_coord original_piece.en_passant
       # increment the row
-      coordinates[1] = coordinates[1] + { black: -1, white: 1 }[original_piece.player]
+      coordinates[1] += { black: -1, white: 1 }[original_piece.player]
       Board.chess_notation(*coordinates)
     end
 
