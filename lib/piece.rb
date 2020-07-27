@@ -59,12 +59,12 @@ class Piece
   end
 
   def valid_moves(&piece_getter)
-    all_moves(&piece_getter).select { |_, move_info| move_info && move_info[:level] == 0 }.compact
+    # selects all level 0 moves (moves that are either a capture or a free move)
+    all_moves(&piece_getter).select { |_, move_info| move_info && move_info[:level].zero? }
   end
 
   protected
 
-  # TODO: optimize by caching this result (wishlist)
   def coordinates
     column_index, row_index = *Board.notation_to_coord(position)
     OpenStruct.new(column: column_index, row: row_index)

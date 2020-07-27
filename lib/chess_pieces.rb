@@ -47,9 +47,6 @@ module Pieces
     def initialize(*args, **kwargs)
       super
       self.moved = false
-      self.move_validator = MoveValidator.new(:AnyPiece)
-      self.capture_validator = MoveValidator.new(:Enemy)
-      self.en_passant_validator = MoveValidator.new(:EnPassant, :EnPassant)
     end
 
     def move(new_position)
@@ -59,6 +56,7 @@ module Pieces
 
     def all_moves(&piece_getter)
       # Blocked if the other piece is not a teammate
+      move_validator = MoveValidator.new(:PawnMove)
       move_validator.validate(self, move_offsets, &piece_getter)
                     .merge(valid_capture_moves(&piece_getter))
                     .merge(valid_en_passant_moves(&piece_getter))
@@ -67,17 +65,18 @@ module Pieces
     private
 
     # en_passant_direction is :left or :right
-    attr_accessor :moved, :move_validator,
-                  :capture_validator, :en_passant_validator
+    attr_accessor :moved
     alias moved? moved
 
     def valid_capture_moves(&piece_getter)
+      capture_validator = MoveValidator.new(:PawnCapture)
       capture_move_offset_paths.reduce({}) do |moves, path|
         moves.merge(capture_validator.validate(self, path, &piece_getter))
       end
     end
 
     def valid_en_passant_moves(&piece_getter)
+      en_passant_validator = MoveValidator.new(:EnPassant, :EnPassant)
       if en_passant
         capture_move_offset_paths.reduce({}) do |moves, path|
           moves.merge(en_passant_validator.validate(self, path, &piece_getter))

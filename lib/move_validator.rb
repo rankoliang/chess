@@ -4,7 +4,7 @@ require_relative 'board'
 
 # validates moves for a piece
 class MoveValidator
-  attr_reader :blocking_type, :rescue_strategy, :position_strategy
+  attr_reader :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy
 
   def initialize(blocking_type = :Standard, position_strategy = :Standard)
     self.position_strategy = PositionStrategy.const_get(position_strategy)
@@ -12,23 +12,27 @@ class MoveValidator
   end
 
   def validate(piece, moves, &piece_get)
-    blocking_strategy = BlockingStrategy.const_get(blocking_type).new
+    self.blocking_strategy = BlockingStrategy.const_get(blocking_type).new
     catch :validated do
       moves.each_with_object({}) do |move, validated|
-        begin
-          future_position, contesting_piece =
-            contesting(move, piece, &piece_get)
-        rescue IndexError
-          next
-        end
-        validated[future_position] = blocking_strategy.move_info(piece, contesting_piece) if future_position
+        validated_update(move, piece, validated, &piece_get)
+      rescue IndexError
+        next
       end
-    end
+    end.compact
   end
 
   private
 
-  attr_writer :blocking_type, :rescue_strategy, :position_strategy
+  attr_writer :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy
+
+  def validated_update(move, piece, validated, &piece_get)
+    future_position, contesting_piece = contesting(move, piece, &piece_get)
+    return unless future_position
+
+    move_info = blocking_strategy.move_info(piece, contesting_piece)
+    validated[future_position] = move_info
+  end
 
   # Returns the coordinates at a future move and the piece that is
   # possibly contesting the current piece
@@ -51,15 +55,23 @@ module BlockingStrategy
     end
 
     def move_info(main, other)
-      if move_type != :free
-        self.blocking_level += 1 if move_type != :blocked
-        self.move_type = :free
-      end
-      handle_block(main, other)
+      post_capture_update
+      move_info_update(main, other)
       { type: move_type, piece: piece, level: blocking_level } if move_type
     end
 
-    def handle_block(main, other)
+    private
+
+    attr_accessor :capture, :blocking_level, :piece, :move_type
+
+    def post_capture_update
+      return if move_type == :free
+
+      self.blocking_level += 1 unless move_type == :blocked
+      self.move_type = :free
+    end
+
+    def move_info_update(main, other)
       if main.enemy? other
         capture_update other
       elsif main.friendly? other
@@ -67,9 +79,6 @@ module BlockingStrategy
       end
     end
 
-    private
-
-    attr_accessor :capture, :blocking_level, :piece, :move_type
     def capture_update(other)
       self.piece = other
       self.move_type = :capture
@@ -83,15 +92,19 @@ module BlockingStrategy
   end
 
   # Blocked by any piece
-  class AnyPiece < Standard
-    def handle_block(_main, other)
+  class PawnMove < Standard
+    private
+
+    def move_info_update(_main, other)
       block_update(other) if !!other
     end
   end
 
   # captures if opposing piece is an enemy
-  class Enemy < Standard
-    def handle_block(main, other)
+  class PawnCapture < Standard
+    private
+
+    def move_info_update(main, other)
       if main.enemy? other
         capture_update(other)
       else
@@ -100,28 +113,11 @@ module BlockingStrategy
     end
   end
 
-  # blocked if opposing piece not is an enemy
-  class NonEnemy < Standard
-    def handle_block(main, other)
-      block_update(other) if main.non_enemy? other
-    end
-  end
-
-  # blocked if opposing piece is friendly
-  class Friendly < Standard
-    def handle_block(main, other)
-      block_update(other) if main.friendly? other
-    end
-  end
-
-  # not blocked by anything
-  class NoBlock < Standard
-    def handle_block(_main, _other); end
-  end
-
   # Blocked if not an EnPassant pair
   class EnPassant < Standard
-    def handle_block(main, other)
+    private
+
+    def move_info_update(main, other)
       if main.en_passant == other.position
         self.piece = other
         self.move_type = :en_passant
@@ -130,11 +126,6 @@ module BlockingStrategy
       end
     end
   end
-end
-
-module RescueStrategy
-  INTERRUPT = proc { |validated| throw :validated, validated }
-  CONTINUE = proc { next }
 end
 
 module PositionStrategy
