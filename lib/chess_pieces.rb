@@ -12,7 +12,7 @@ module Pieces
 
   # The bishop can move any number of spaces diagonally.
   class Bishop < Piece
-    def valid_moves(&piece_getter)
+    def all_moves(&piece_getter)
       # iterates through all four diagonal positions
       paths = proc { |direction| diagonal_paths(direction) }
       validated_moves(DIAGONAL_DIRECTIONS, piece_getter, &paths)
@@ -22,7 +22,7 @@ module Pieces
   # A player loses when the king is put in check mate. The king can move in
   # any direction in one space
   class King < Piece
-    def valid_moves(&piece_getter)
+    def all_moves(&piece_getter)
       paths = [-1, 0, 1].repeated_permutation(2)
                         .to_set.delete([0, 0]).map { |move| [move] }
       validated_moves(paths, piece_getter)
@@ -31,7 +31,7 @@ module Pieces
 
   # Knight moves in an 'L' shape
   class Knight < Piece
-    def valid_moves(&piece_getter)
+    def all_moves(&piece_getter)
       paths = ([-2, 2].product([-1, 1]) +
                [-1, 1].product([-2, 2]))
               .map { |move| [move] }
@@ -47,9 +47,9 @@ module Pieces
     def initialize(*args, **kwargs)
       super
       self.moved = false
-      self.move_validator = MoveValidator.new(:AnyPiece, :CONTINUE)
-      self.capture_validator = MoveValidator.new(:Standard, :CONTINUE)
-      self.en_passant_validator = MoveValidator.new(:EnPassant, :CONTINUE, :EnPassant)
+      self.move_validator = MoveValidator.new(:AnyPiece)
+      self.capture_validator = MoveValidator.new(:Enemy)
+      self.en_passant_validator = MoveValidator.new(:EnPassant, :EnPassant)
     end
 
     def move(new_position)
@@ -57,7 +57,7 @@ module Pieces
       self.moved = true
     end
 
-    def valid_moves(&piece_getter)
+    def all_moves(&piece_getter)
       # Blocked if the other piece is not a teammate
       move_validator.validate(self, move_offsets, &piece_getter)
                     .merge(valid_capture_moves(&piece_getter))
@@ -107,7 +107,7 @@ module Pieces
   # The queen can move in any direction until she takes a piece or is at the
   # edge of the board
   class Queen < Piece
-    def valid_moves(&piece_getter)
+    def all_moves(&piece_getter)
       # union of all moves in the diagonal and cardinal directions
       [{ directions: CARDINAL_DIRECTIONS,
          paths: proc { |direction| cardinal_paths(direction) } },
@@ -121,7 +121,7 @@ module Pieces
 
   # The rook can move in any direction vertically or horizontally
   class Rook < Piece
-    def valid_moves(&piece_getter)
+    def all_moves(&piece_getter)
       paths = proc { |direction| cardinal_paths(direction) }
       validated_moves(CARDINAL_DIRECTIONS, piece_getter, &paths)
     end

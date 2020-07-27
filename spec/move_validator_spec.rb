@@ -10,7 +10,7 @@ end
 
 RSpec.describe MoveValidator do
   describe '#validate' do
-    subject(:validator) { described_class.new(:Standard, :CONTINUE) }
+    subject(:validator) { described_class.new(:Standard) }
 
     RSpec.shared_context 'when validating' do |subject_position, player_color = :white, **positions|
       let(:position) { subject_position }
@@ -58,8 +58,7 @@ RSpec.describe MoveValidator do
       it 'returns all moves' do
         expect(valid_moves).to eq(
           move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-            { 'a5' => move(:blocked, 'a5', 1) },
-            move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1))
+            { 'a5' => move(:blocked, 'a5', 1) }, move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1))
           )
         )
       end

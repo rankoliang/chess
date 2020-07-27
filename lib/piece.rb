@@ -58,6 +58,10 @@ class Piece
     false
   end
 
+  def valid_moves(&piece_getter)
+    all_moves(&piece_getter).select { |_, move_info| move_info && move_info[:level] == 0 }.compact
+  end
+
   protected
 
   # TODO: optimize by caching this result (wishlist)
