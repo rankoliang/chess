@@ -47,9 +47,9 @@ module Pieces
     def initialize(*args, **kwargs)
       super
       self.moved = false
-      self.move_validator = MoveValidator.new(:AnyPiece, :INTERRUPT)
-      self.capture_validator = MoveValidator.new(:NonEnemy, :INTERRUPT)
-      self.en_passant_validator = MoveValidator.new(:EnPassant, :INTERRUPT, :EnPassant)
+      self.move_validator = MoveValidator.new(:AnyPiece, :CONTINUE)
+      self.capture_validator = MoveValidator.new(:Standard, :CONTINUE)
+      self.en_passant_validator = MoveValidator.new(:EnPassant, :CONTINUE, :EnPassant)
     end
 
     def move(new_position)

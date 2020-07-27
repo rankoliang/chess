@@ -58,7 +58,8 @@ RSpec.describe MoveValidator do
       it 'returns all moves' do
         expect(valid_moves).to eq(
           move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-            move_hash_generate(%w[a5 a6 a7 a8], move(:free, 'a5', 1))
+            { 'a5' => move(:blocked, 'a5', 1) },
+            move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1))
           )
         )
       end
@@ -72,8 +73,10 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          move_hash_generate(%w[a5 a6], move(:free, 'a5', 1)),
-          move_hash_generate(%w[a7 a8], move(:free, 'a7', 2))
+          { 'a5' => move(:blocked, 'a5', 1),
+            'a6' => move(:free, 'a5', 1),
+            'a7' => move(:blocked, 'a7', 2),
+            'a8' => move(:free, 'a7', 2) }
         )
       end
 
@@ -109,6 +112,46 @@ RSpec.describe MoveValidator do
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
           { 'a5' => move(:capture, 'a5', 0),
+            'a6' => move(:free, 'a5', 1),
+            'a7' => move(:capture, 'a7', 1),
+            'a8' => move(:free, 'a7', 2) }
+        )
+      end
+
+      it 'returns all moves' do
+        expect(valid_moves).to eq(expected_moves)
+      end
+    end
+
+    context 'when blocked by an enemy unit and a friendly unit' do
+      include_context 'when validating', 'a1', enemies: %w[a5], friendly: %w[a7]
+
+      let(:moves) { (1..8).map { |i| [0, i] } }
+      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
+
+      let(:expected_moves) do
+        move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
+          { 'a5' => move(:capture, 'a5', 0),
+            'a6' => move(:free, 'a5', 1),
+            'a7' => move(:blocked, 'a7', 2),
+            'a8' => move(:free, 'a7', 2) }
+        )
+      end
+
+      it 'returns all moves' do
+        expect(valid_moves).to eq(expected_moves)
+      end
+    end
+
+    context 'when blocked by a friendly unit and an enemy unit' do
+      include_context 'when validating', 'a1', enemies: %w[a7], friendly: %w[a5]
+
+      let(:moves) { (1..8).map { |i| [0, i] } }
+      let(:unblocked_move) { { type: :free, piece: nil, level: 0 } }
+
+      let(:expected_moves) do
+        move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
+          { 'a5' => move(:blocked, 'a5', 1),
             'a6' => move(:free, 'a5', 1),
             'a7' => move(:capture, 'a7', 1),
             'a8' => move(:free, 'a7', 2) }

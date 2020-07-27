@@ -4,15 +4,16 @@ require_relative 'board'
 
 # validates moves for a piece
 class MoveValidator
-  attr_reader :blocking_strategy, :rescue_strategy, :position_strategy
+  attr_reader :blocking_type, :rescue_strategy, :position_strategy
 
-  def initialize(blocking_strategy = :Standard, rescue_strategy = :INTERRUPT, position_strategy = :Standard)
-    self.blocking_strategy = BlockingStrategy.const_get(blocking_strategy).new
+  def initialize(blocking_type = :Standard, rescue_strategy = :INTERRUPT, position_strategy = :Standard)
     self.rescue_strategy = RescueStrategy.const_get(rescue_strategy)
     self.position_strategy = PositionStrategy.const_get(position_strategy)
+    self.blocking_type = blocking_type
   end
 
   def validate(piece, moves, &piece_get)
+    blocking_strategy = BlockingStrategy.const_get(blocking_type).new
     catch :validated do
       moves.each_with_object({}) do |move, validated|
         future_position, contesting_piece =
@@ -24,7 +25,7 @@ class MoveValidator
 
   private
 
-  attr_writer :blocking_strategy, :rescue_strategy, :position_strategy
+  attr_writer :blocking_type, :rescue_strategy, :position_strategy
 
   # Returns the coordinates at a future move and the piece that is
   # possibly contesting the current piece
@@ -50,72 +51,80 @@ module BlockingStrategy
     end
 
     def move_info(main, other)
-      if move_type == :capture
+      if move_type != :free
+        self.blocking_level += 1 if move_type != :blocked
         self.move_type = :free
-        self.blocking_level += 1
       end
+      handle_block(main, other)
+      { type: move_type, piece: piece, level: blocking_level }
+    end
+
+    def handle_block(main, other)
       if main.enemy? other
-        handle_capture other
+        capture_update other
       elsif main.friendly? other
-        handle_friendly other
+        block_update other
       end
-      { type: move_type, piece: blocking_piece, level: blocking_level }
     end
 
     private
 
-    attr_accessor :capture, :blocking_level, :blocking_piece, :move_type
-    def handle_capture(other)
-      self.blocking_piece = other
+    attr_accessor :capture, :blocking_level, :piece, :move_type
+    def capture_update(other)
+      self.piece = other
       self.move_type = :capture
     end
 
-    def handle_friendly(other)
-      self.move_type = :free
+    def block_update(other)
+      self.move_type = :blocked
       self.blocking_level += 1
-      self.blocking_piece = other
+      self.piece = other
     end
   end
 
   # Blocked by any piece
-  class AnyPiece
-    def blocked(_main, other)
-      !!other
+  class AnyPiece < Standard
+    def handle_block(_main, other)
+      block_update(other) if !!other
     end
   end
 
-  # blocked if opposing piece is an enemy
-  class Enemy
-    def blocked(main, other)
-      main.enemy? other
+  # captures if opposing piece is an enemy
+  class Enemy < Standard
+    def handle_block(main, other)
+      capture_update(other) if main.enemy? other
     end
   end
 
   # blocked if opposing piece not is an enemy
-  class NonEnemy
-    def blocked(main, other)
-      main.non_enemy? other
+  class NonEnemy < Standard
+    def handle_block(main, other)
+      block_update(other) if main.non_enemy? other
     end
   end
 
   # blocked if opposing piece is friendly
-  class Friendly
-    def blocked(main, other)
-      main.friendly? other
+  class Friendly < Standard
+    def handle_block(main, other)
+      block_update(other) if main.friendly? other
     end
   end
 
   # not blocked by anything
-  class NoBlock
-    def blocked(_main, _other)
-      false
-    end
+  class NoBlock < Standard
+    def handle_block(_main, _other); end
   end
 
   # Blocked if not an EnPassant pair
-  class EnPassant
-    def blocked(main, other)
-      main.en_passant != other.position
+  class EnPassant < Standard
+    def handle_block(main, other)
+      if main.en_passant == other.position
+        self.piece = other
+        self.move_type = :en_passant
+      else
+        self.piece = nil
+        self.level = -1
+      end
     end
   end
 end
@@ -137,6 +146,7 @@ module PositionStrategy
     end
   end
 
+  # En Passant checks a different position than normal
   class EnPassant
     def self.future_position(original_piece, _move)
       coordinates = Board.notation_to_coord original_piece.en_passant
