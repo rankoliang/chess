@@ -45,8 +45,8 @@ module Pieces
     attr_accessor :en_passant
     def all_moves(&piece_getter)
       # Blocked if the other piece is not a teammate
-      move_validator = MoveValidator.new(:PawnMove)
-      move_validator.validate(self, move_offsets, &piece_getter)
+      move_validator = MoveValidator.new(self, :PawnMove)
+      move_validator.validate(move_offsets, &piece_getter)
                     .merge(
                       valid_capture_moves(&piece_getter),
                       valid_en_passant_moves(&piece_getter)
@@ -56,18 +56,18 @@ module Pieces
     private
 
     def valid_capture_moves(&piece_getter)
-      capture_validator = MoveValidator.new(:PawnCapture)
+      capture_validator = MoveValidator.new(self, :PawnCapture)
       capture_move_offset_paths.reduce({}) do |moves, path|
-        moves.merge(capture_validator.validate(self, path, &piece_getter))
+        moves.merge(capture_validator.validate(path, &piece_getter))
       end
     end
 
     def valid_en_passant_moves(&piece_getter)
       return {} unless en_passant
 
-      en_passant_validator = MoveValidator.new(:EnPassant, :EnPassant)
+      en_passant_validator = MoveValidator.new(self, :EnPassant, :EnPassant)
       capture_move_offset_paths.reduce({}) do |moves, path|
-        moves.merge(en_passant_validator.validate(self, path, &piece_getter))
+        moves.merge(en_passant_validator.validate(path, &piece_getter))
       end
     end
 

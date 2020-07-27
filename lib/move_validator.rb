@@ -4,18 +4,20 @@ require_relative 'board'
 
 # validates moves for a piece
 class MoveValidator
-  attr_reader :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy
+  attr_reader :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy,
+              :piece
 
-  def initialize(blocking_type = :Standard, position_strategy = :Standard)
+  def initialize(piece, blocking_type = :Standard, position_strategy = :Standard)
     self.position_strategy = PositionStrategy.const_get(position_strategy)
     self.blocking_type = blocking_type
+    self.piece = piece
   end
 
-  def validate(piece, moves, &piece_get)
+  def validate(moves, &piece_get)
     self.blocking_strategy = BlockingStrategy.const_get(blocking_type).new
     catch :validated do
       moves.each_with_object({}) do |move, validated|
-        validated_update(move, piece, validated, &piece_get)
+        validated_update(move, validated, &piece_get)
       rescue IndexError
         next
       end
@@ -24,10 +26,11 @@ class MoveValidator
 
   private
 
-  attr_writer :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy
+  attr_writer :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy,
+              :piece
 
-  def validated_update(move, piece, validated, &piece_get)
-    future_position, contesting_piece = contesting(move, piece, &piece_get)
+  def validated_update(move, validated, &piece_get)
+    future_position, contesting_piece = contesting(move, &piece_get)
     return unless future_position
 
     move_info = blocking_strategy.move_info(piece, contesting_piece)
@@ -36,10 +39,9 @@ class MoveValidator
 
   # Returns the coordinates at a future move and the piece that is
   # possibly contesting the current piece
-  def contesting(move, original_piece)
-    future_position = position_strategy.future_position(original_piece, move)
-    # original_piece.offset_position(move)
-    query_position = position_strategy.query_position(future_position, original_piece)
+  def contesting(move)
+    future_position = position_strategy.future_position(piece, move)
+    query_position = position_strategy.query_position(future_position, piece)
     contesting_piece = yield(query_position) if block_given?
     [future_position, contesting_piece]
   end
