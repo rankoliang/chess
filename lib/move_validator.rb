@@ -5,15 +5,17 @@ require_relative 'board'
 # validates moves for a piece
 class MoveValidator
   attr_reader :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy,
-              :piece
+              :piece, :piece_get
 
-  def initialize(piece, blocking_type = :Standard, position_strategy = :Standard)
+  def initialize(piece, blocking_type = :Standard,
+                 position_strategy = :Standard, &piece_get)
     self.position_strategy = PositionStrategy.const_get(position_strategy)
     self.blocking_type = blocking_type
     self.piece = piece
+    self.piece_get = piece_get if block_given?
   end
 
-  def validate(moves, &piece_get)
+  def validate(moves)
     self.blocking_strategy = BlockingStrategy.const_get(blocking_type).new
     catch :validated do
       moves.each_with_object({}) do |move, validated|
@@ -27,10 +29,10 @@ class MoveValidator
   private
 
   attr_writer :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy,
-              :piece
+              :piece, :piece_get
 
-  def validated_update(move, validated, &piece_get)
-    future_position, contesting_piece = contesting(move, &piece_get)
+  def validated_update(move, validated)
+    future_position, contesting_piece = contesting(move)
     return unless future_position
 
     move_info = blocking_strategy.move_info(piece, contesting_piece)
@@ -42,7 +44,7 @@ class MoveValidator
   def contesting(move)
     future_position = position_strategy.future_position(piece, move)
     query_position = position_strategy.query_position(future_position, piece)
-    contesting_piece = yield(query_position) if block_given?
+    contesting_piece = piece_get.call(query_position) if piece_get
     [future_position, contesting_piece]
   end
 end

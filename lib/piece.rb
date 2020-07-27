@@ -99,8 +99,8 @@ class Piece
   def validated_moves(paths, piece_getter)
     paths.map do |path|
       moves = block_given? ? yield(path) : path
-      move_validator = MoveValidator.new(self)
-      move_validator.validate(moves, &piece_getter)
+      move_validator = MoveValidator.new(self, &piece_getter)
+      move_validator.validate(moves)
     end.reduce({}, &:merge)
   end
 end

@@ -11,16 +11,16 @@ end
 
 RSpec.describe MoveValidator do
   describe '#validate' do
-    subject(:validator) { described_class.new(piece, :Standard) }
+    subject(:validator) { described_class.new(piece, :Standard, &piece_get) }
 
+    let(:piece_get) { proc { |position| board.at(position) } }
     let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: true, movable: true } }
     let(:piece) { Piece.new(position: position, player: player_color) }
-    let(:valid_moves) { validator.validate(moves, &piece_get) }
+    let(:valid_moves) { validator.validate(moves) }
 
     RSpec.shared_context 'when validating' do |subject_position, player_color = :white, **positions|
       let(:position) { subject_position }
       let(:board) { Board.new }
-      let(:piece_get) { proc { |position| board.at(position) } }
       let(:player_color) { player_color }
 
       before do
@@ -159,7 +159,7 @@ RSpec.describe MoveValidator do
 
     context 'when the blocking strategy is PawnMove' do
       context 'when blocked by an enemy unit' do
-        subject(:validator) { described_class.new(piece, :PawnMove) }
+        subject(:validator) { described_class.new(piece, :PawnMove, &piece_get) }
 
         include_context 'when validating', 'a2', enemies: %w[a4]
 
@@ -177,7 +177,7 @@ RSpec.describe MoveValidator do
       end
 
       context 'when blocked by multiple units' do
-        subject(:validator) { described_class.new(piece, :PawnMove) }
+        subject(:validator) { described_class.new(piece, :PawnMove, &piece_get) }
 
         include_context 'when validating', 'a2', enemies: %w[a3], friendly: %w[a4]
 
@@ -197,14 +197,14 @@ RSpec.describe MoveValidator do
 
     context 'when the blocking strategy is PawnCapture' do
       context 'when blocked by an enemy unit' do
-        subject(:validator) { described_class.new(piece, :PawnCapture) }
+        subject(:validator) { described_class.new(piece, :PawnCapture, &piece_get) }
 
         include_context 'when validating', 'b2', enemies: %w[a3]
 
         let(:moves) { [[[-1, 1]], [[1, 1]]] }
         let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
         let(:valid_moves) do
-          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path, &piece_get)) }
+          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
         end
 
         let(:expected_moves) do
@@ -221,14 +221,14 @@ RSpec.describe MoveValidator do
 
     context 'when the blocking strategy is EnPassant' do
       context 'when blocked by an enemy unit' do
-        subject(:validator) { described_class.new(piece, :EnPassant) }
+        subject(:validator) { described_class.new(piece, :EnPassant, &piece_get) }
 
         include_context 'when validating', 'e5', enemies: %w[f6]
 
         let(:moves) { [[[-1, 1]], [[1, 1]]] }
         let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
         let(:valid_moves) do
-          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path, &piece_get)) }
+          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
         end
         let(:expected_moves) do
           { 'f6' => move(:en_passant, 'f6', 0, movable: false),
