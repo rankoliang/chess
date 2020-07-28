@@ -4,12 +4,14 @@ require_relative 'board'
 
 # validates moves for a piece
 class MoveValidator
+  STRATEGY_TYPE = Hash.new(:Standard).update(EnPassant: :EnPassant, Castle: :Castle)
+
   attr_reader :blocking_type, :rescue_strategy, :position_strategy, :blocking_strategy,
               :piece, :piece_get
 
   def initialize(piece, blocking_type = :Standard,
-                 position_strategy = :Standard, &piece_get)
-    self.position_strategy = PositionStrategy.const_get(position_strategy)
+                 _position_strategy = :Standard, &piece_get)
+    self.position_strategy = PositionStrategy.const_get(STRATEGY_TYPE[blocking_type])
     self.blocking_type = blocking_type
     self.piece = piece
     self.piece_get = piece_get if block_given?
@@ -169,15 +171,19 @@ module PositionStrategy
 
   # En Passant checks a different position than normal
   class EnPassant
-    def self.future_position(original_piece, _move)
-      coordinates = Board.notation_to_coord original_piece.en_passant
-      # increment the row
-      coordinates[1] += { black: -1, white: 1 }[original_piece.player]
-      Board.chess_notation(*coordinates)
+    def self.future_position(original_piece, move)
+      original_piece.offset_position(move)
+      # coordinates = original_piece.offset_position(move)
+      # coordinates = Board.notation_to_coord coordinates
+      # # increment the row
+      # # coordinates[1] += { black: -1, white: 1 }[original_piece.player]
+      # Board.chess_notation(*coordinates)
     end
 
-    def self.query_position(_future_position, original_piece)
-      original_piece.en_passant
+    def self.query_position(future_position, original_piece)
+      coordinates = Board.notation_to_coord(future_position)
+      coordinates[1] -= { black: -1, white: 1 }[original_piece.player]
+      Board.chess_notation(*coordinates)
     end
   end
 end

@@ -28,7 +28,6 @@ module Pieces
       validated_moves(paths, piece_getter)
     end
   end
-
   # Knight moves in an 'L' shape
   class Knight < Piece
     def all_moves(&piece_getter)
@@ -45,7 +44,8 @@ module Pieces
     attr_accessor :en_passant
     def all_moves(&piece_getter)
       # Blocked if the other piece is not a teammate
-      move_validator = MoveValidator.new(self, :PawnMove, &piece_getter)
+      move_validator =
+        MoveValidator.new(self, :PawnMove, &piece_getter)
       move_validator.validate(move_offsets)
                     .merge(
                       valid_capture_moves(&piece_getter),
@@ -65,7 +65,8 @@ module Pieces
     def valid_en_passant_moves(&piece_getter)
       return {} unless en_passant
 
-      en_passant_validator = MoveValidator.new(self, :EnPassant, :EnPassant, &piece_getter)
+      en_passant_validator =
+        MoveValidator.new(self, :EnPassant, :EnPassant, &piece_getter)
       capture_move_offset_paths.reduce({}) do |moves, path|
         moves.merge(en_passant_validator.validate(path))
       end

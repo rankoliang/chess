@@ -223,7 +223,7 @@ RSpec.describe MoveValidator do
       context 'when blocked by an enemy unit' do
         subject(:validator) { described_class.new(piece, :EnPassant, &piece_get) }
 
-        include_context 'when validating', 'e5', enemies: %w[f6]
+        include_context 'when validating', 'e5', enemies: %w[f5]
 
         let(:moves) { [[[-1, 1]], [[1, 1]]] }
         let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
@@ -231,7 +231,7 @@ RSpec.describe MoveValidator do
           moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
         end
         let(:expected_moves) do
-          { 'f6' => move(:en_passant, 'f6', 0, movable: false),
+          { 'f6' => move(:en_passant, 'f5', 0, movable: false),
             'd6' => { type: :blocked, piece: nil,
                       level: 1, capturable: true, movable: false } }
         end
@@ -239,7 +239,7 @@ RSpec.describe MoveValidator do
 
         before do
           piece.move(position)
-          piece.en_passant = 'f6'
+          piece.en_passant = 'f5'
         end
 
         it 'returns all moves' do
