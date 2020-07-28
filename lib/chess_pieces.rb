@@ -50,7 +50,7 @@ module Pieces
                     .merge(
                       valid_capture_moves(&piece_getter),
                       valid_en_passant_moves(&piece_getter)
-                    )
+                    ) { |_, *moves| moves.min { |a, b| a[:level] <=> b[:level] } }
     end
 
     private
