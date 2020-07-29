@@ -249,25 +249,107 @@ RSpec.describe MoveValidator do
     context 'when the blocking strategy is :Castle' do
       subject(:validator) { described_class.new(piece, :Castle, &piece_get) }
 
-      include_context 'when validating', 'e1'
-
-      let(:rooks) { %w[a1 h1] }
-      let(:valid_moves) { validator.validate(rooks) }
+      let(:valid_moves) { rooks.reduce({}) { |moves, rook| moves.merge(validator.validate(rook)) } }
       let(:piece) { Pieces::King.new(position: position, player: player_color) }
-      let(:expected_moves) do
-        { 'c1' => move(:castle, 'a1', 0, capturable: false),
-          'g1' => move(:castle, 'h1', 0, capturable: false) }
-      end
 
-      before do
-        rooks.each do |rook_position|
-          friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
-          allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
+      context 'when the player color is white' do
+        include_context 'when validating', 'e1', :white
+
+        let(:rooks) { [['a1'], ['h1']] }
+        let(:expected_moves) do
+          { 'c1' => move(:castle, 'a1', 0, capturable: false),
+            'g1' => move(:castle, 'h1', 0, capturable: false) }
+        end
+
+        before do
+          rooks.flatten.each do |rook_position|
+            friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
+            allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
+          end
+        end
+
+        it 'returns available castles' do
+          expect(valid_moves).to eq(expected_moves)
         end
       end
 
-      it 'returns available castles' do
-        expect(valid_moves).to eq(expected_moves)
+      context 'when the player color is black' do
+        include_context 'when validating', 'e8', :black
+
+        let(:rooks) { [['a8'], ['h8']] }
+        let(:expected_moves) do
+          { 'c8' => move(:castle, 'a8', 0, capturable: false),
+            'g8' => move(:castle, 'h8', 0, capturable: false) }
+        end
+
+        before do
+          rooks.flatten.each do |rook_position|
+            friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
+            allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
+          end
+        end
+
+        it 'returns available castles' do
+          expect(valid_moves).to eq(expected_moves)
+        end
+      end
+
+      context 'when a rook has moved' do
+        include_context 'when validating', 'e8', :white
+
+        let(:rooks) { [['a8'], ['h8']] }
+        let(:expected_moves) do
+          { 'c8' => move(:castle, 'a8', 0, capturable: false) }
+        end
+
+        before do
+          rooks.flatten.each do |rook_position|
+            friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
+            allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
+          end
+          board.at('h8').move('h8')
+        end
+
+        it 'returns available castles' do
+          expect(valid_moves).to eq(expected_moves)
+        end
+      end
+
+      context 'when both rooks have moved' do
+        include_context 'when validating', 'e1', :white
+
+        let(:rooks) { [['a1'], ['h1']] }
+
+        before do
+          rooks.flatten.each do |rook_position|
+            friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
+            allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
+          end
+          board.at('h1').move('h1')
+          board.at('a1').move('a1')
+        end
+
+        it 'returns available castles' do
+          expect(valid_moves).to be_empty
+        end
+      end
+
+      context 'when the king has moved' do
+        include_context 'when validating', 'e1', :white
+
+        let(:rooks) { [['a1'], ['h1']] }
+
+        before do
+          rooks.flatten.each do |rook_position|
+            friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
+            allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
+          end
+          piece.move('e1')
+        end
+
+        it 'returns available castles' do
+          expect(valid_moves).to be_empty
+        end
       end
     end
   end

@@ -116,11 +116,11 @@ module BlockingStrategy
     def post_capture_update(*_args, **_kwargs); end
 
     def move_info_update(main, other)
-      if !main.moved? && !other.moved?
+      if other.class == Pieces::Rook && !main.moved? && !other.moved?
         self.move_type = :castle
         self.piece = other
       else
-        block_update(other)
+        self.move_type = nil
       end
     end
   end
