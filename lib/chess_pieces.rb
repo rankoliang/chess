@@ -27,6 +27,12 @@ module Pieces
                         .to_set.delete([0, 0]).map { |move| [move] }
       validated_moves(paths, piece_getter)
     end
+
+    def castle(&piece_getter)
+      rooks = { white: %w[a1 h1], black: %w[a8 h8] }
+      castle_validator = MoveValidator.new(self, :Castle, &piece_getter)
+      castle_validator.validate(rooks[player])
+    end
   end
   # Knight moves in an 'L' shape
   class Knight < Piece
@@ -43,9 +49,8 @@ module Pieces
   class Pawn < Piece
     attr_accessor :en_passant
     def all_moves(&piece_getter)
-      # Blocked if the other piece is not a teammate
-      move_validator =
-        MoveValidator.new(self, :PawnMove, &piece_getter)
+      # Blocked if the other piece is not a friendly unit
+      move_validator = MoveValidator.new(self, :PawnMove, &piece_getter)
       move_validator.validate(move_offsets)
                     .merge(
                       valid_capture_moves(&piece_getter),
@@ -65,21 +70,19 @@ module Pieces
     def valid_en_passant_moves(&piece_getter)
       return {} unless en_passant
 
-      en_passant_validator =
-        MoveValidator.new(self, :EnPassant, :EnPassant, &piece_getter)
+      en_passant_validator = MoveValidator.new(self, :EnPassant, &piece_getter)
       capture_move_offset_paths.reduce({}) do |moves, path|
         moves.merge(en_passant_validator.validate(path))
       end
     end
 
     def move_offsets
-      case moved?
-      when false
-        { white: [[0, 1], [0, 2]],
-          black: [[0, -1], [0, -2]] }
-      when true
+      if moved?
         { white: [[0, 1]],
           black: [[0, -1]] }
+      else
+        { white: [[0, 1], [0, 2]],
+          black: [[0, -1], [0, -2]] }
       end[player]
     end
 

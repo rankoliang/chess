@@ -17,7 +17,6 @@ RSpec.shared_examples 'piece#valid_moves' do |expectation_message, subject_posit
         friendly_piece = instance_double('Piece', player: subject.player, position: position)
         allow(board).to receive(:at).with(position).and_return(friendly_piece)
       end
-      # puts subject.all_moves(&get_position)
     end
 
     it expectation_message do

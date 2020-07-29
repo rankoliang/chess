@@ -220,31 +220,54 @@ RSpec.describe MoveValidator do
     end
 
     context 'when the blocking strategy is EnPassant' do
-      context 'when blocked by an enemy unit' do
-        subject(:validator) { described_class.new(piece, :EnPassant, &piece_get) }
+      subject(:validator) { described_class.new(piece, :EnPassant, &piece_get) }
 
-        include_context 'when validating', 'e5', enemies: %w[f5]
+      include_context 'when validating', 'e5', enemies: %w[f5]
 
-        let(:moves) { [[[-1, 1]], [[1, 1]]] }
-        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
-        let(:valid_moves) do
-          moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
-        end
-        let(:expected_moves) do
-          { 'f6' => move(:en_passant, 'f5', 0, movable: false),
-            'd6' => { type: :blocked, piece: nil,
-                      level: 1, capturable: true, movable: false } }
-        end
-        let(:piece) { Pieces::Pawn.new(position: position, player: player_color) }
+      let(:moves) { [[[-1, 1]], [[1, 1]]] }
 
-        before do
-          piece.move(position)
-          piece.en_passant = 'f5'
-        end
+      let(:valid_moves) do
+        moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
+      end
+      let(:expected_moves) do
+        { 'f6' => move(:en_passant, 'f5', 0, movable: false),
+          'd6' => { type: :blocked, piece: nil,
+                    level: 1, capturable: true, movable: false } }
+      end
+      let(:piece) { Pieces::Pawn.new(position: position, player: player_color) }
 
-        it 'returns all moves' do
-          expect(valid_moves).to eq(expected_moves)
+      before do
+        piece.move(position)
+        piece.en_passant = 'f5'
+      end
+
+      it 'returns all moves' do
+        expect(valid_moves).to eq(expected_moves)
+      end
+    end
+
+    context 'when the blocking strategy is :Castle' do
+      subject(:validator) { described_class.new(piece, :Castle, &piece_get) }
+
+      include_context 'when validating', 'e1'
+
+      let(:rooks) { %w[a1 h1] }
+      let(:valid_moves) { validator.validate(rooks) }
+      let(:piece) { Pieces::King.new(position: position, player: player_color) }
+      let(:expected_moves) do
+        { 'c1' => move(:castle, 'a1', 0, movable: true, capture: false),
+          'g1' => move(:castle, 'h1', 0, movable: true, capture: false) }
+      end
+
+      before do
+        rooks.each do |rook_position|
+          friendly_rook = Pieces::Rook.new(position: rook_position, player: player_color)
+          allow(board).to receive(:at).with(rook_position).and_return(friendly_rook)
         end
+      end
+
+      it 'returns available castles' do
+        expect(valid_moves).to eq(expected_moves)
       end
     end
   end
