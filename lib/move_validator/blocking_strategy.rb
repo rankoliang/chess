@@ -104,4 +104,24 @@ module BlockingStrategy
       end
     end
   end
+
+  class Castle < Standard
+    def initialize
+      super
+      self.capturable = false
+    end
+
+    private
+
+    def post_capture_update(*_args, **_kwargs); end
+
+    def move_info_update(main, other)
+      if !main.moved? && !other.moved?
+        self.move_type = :castle
+        self.piece = other
+      else
+        block_update(other)
+      end
+    end
+  end
 end

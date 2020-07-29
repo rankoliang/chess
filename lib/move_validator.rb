@@ -45,8 +45,7 @@ class MoveValidator
   # Returns the coordinates at a future move and the piece that is
   # possibly contesting the current piece
   def contesting(move)
-    future_position = position_strategy.future_position(piece, move)
-    query_position = position_strategy.query_position(future_position, piece)
+    future_position, query_position = position_strategy.positions(piece, move)
     contesting_piece = piece_get.call(query_position) if piece_get
     [future_position, contesting_piece]
   end

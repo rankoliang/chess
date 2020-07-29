@@ -3,25 +3,32 @@
 module PositionStrategy
   # the position at the offset
   class Standard
-    def self.future_position(original_piece, move)
-      original_piece.offset_position(move)
-    end
-
-    def self.query_position(future_position, _original_piece)
-      future_position
+    def self.positions(piece, move)
+      Array.new(2) { piece.offset_position(move) }
     end
   end
 
   # En Passant checks a different position than normal
   class EnPassant
-    def self.future_position(original_piece, move)
-      original_piece.offset_position(move)
-    end
-
-    def self.query_position(future_position, original_piece)
+    def self.positions(piece, move)
+      future_position = piece.offset_position(move)
       coordinates = Board.notation_to_coord(future_position)
-      coordinates[1] -= { black: -1, white: 1 }[original_piece.player]
-      Board.chess_notation(*coordinates)
+      coordinates[1] -= { black: -1, white: 1 }[piece.player]
+      [future_position, Board.chess_notation(*coordinates)]
+    end
+  end
+  class Castle < Standard
+    def self.positions(king, rook_position)
+      king_column, king_row = Board.notation_to_coord(king.position)
+      rook_column, = Board.notation_to_coord(rook_position)
+
+      if king_column < rook_column
+        king_column += 2
+      else
+        king_column -= 2
+      end
+
+      [Board.chess_notation(king_column, king_row), rook_position]
     end
   end
 end

@@ -255,8 +255,8 @@ RSpec.describe MoveValidator do
       let(:valid_moves) { validator.validate(rooks) }
       let(:piece) { Pieces::King.new(position: position, player: player_color) }
       let(:expected_moves) do
-        { 'c1' => move(:castle, 'a1', 0, movable: true, capture: false),
-          'g1' => move(:castle, 'h1', 0, movable: true, capture: false) }
+        { 'c1' => move(:castle, 'a1', 0, capturable: false),
+          'g1' => move(:castle, 'h1', 0, capturable: false) }
       end
 
       before do
