@@ -351,6 +351,27 @@ RSpec.describe MoveValidator do
           expect(valid_moves).to be_empty
         end
       end
+
+      context 'when a non-rook is at the position' do
+        include_context 'when validating', 'e1', :white
+        let(:valid_moves) { pieces.reduce({}) { |moves, piece| moves.merge(validator.validate(piece)) } }
+        let(:expected_moves) do
+          { 'c1' => move(:castle, 'a1', 0, capturable: false) }
+        end
+
+        let(:pieces) { [['a1'], ['h1']] }
+
+        before do
+          pieces.flatten.zip([Pieces::Rook, Pieces::Pawn]).each do |piece_position, piece_type|
+            friendly_piece = piece_type.new(position: piece_position, player: player_color)
+            allow(board).to receive(:at).with(piece_position).and_return(friendly_piece)
+          end
+        end
+
+        it 'returns available castles' do
+          expect(valid_moves).to eq(expected_moves)
+        end
+      end
     end
   end
 end
