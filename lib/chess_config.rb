@@ -5,6 +5,7 @@ require 'paint'
 # Contains contants used throughout the program
 # :reek:TooManyConstants
 module ChessConfig
+  SAVE_DIR = 'saves'
   BOARD_WIDTH = 8
   BOARD_HEIGHT = 8
   TRUE_COLORS = true

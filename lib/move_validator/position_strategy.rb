@@ -17,6 +17,8 @@ module PositionStrategy
       [future_position, Board.chess_notation(*coordinates)]
     end
   end
+
+  # returns the king's final position and the rook's original position
   class Castle < Standard
     def self.positions(king, rook_position)
       king_column, king_row = Board.notation_to_coord(king.position)

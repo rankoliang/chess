@@ -50,4 +50,3 @@ class MoveValidator
     [future_position, contesting_piece]
   end
 end
-

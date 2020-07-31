@@ -13,6 +13,8 @@ chess_game.move('a1', 'a3')
 chess_game.board.draw
 chess_game.move('a1', 'a3')
 chess_game.board.draw
+chess_game.save_game
+Chess.load_game('20200731195015-chess.sav').board.draw
 
 # # puts board.pieces
 # # p ChessBoard.nested_hash_expand(ChessConfig::DEFAULT_LOCATIONS)

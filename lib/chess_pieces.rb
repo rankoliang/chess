@@ -25,7 +25,7 @@ module Pieces
     def all_moves(&piece_getter)
       paths = [-1, 0, 1].repeated_permutation(2)
                         .to_set.delete([0, 0]).map { |move| [move] }
-      validated_moves(paths, piece_getter)
+      validated_moves(paths, piece_getter).merge castle(&piece_getter)
     end
 
     def castle(&piece_getter)

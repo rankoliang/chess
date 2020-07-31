@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'date'
 require_relative 'chess_board'
 require_relative 'chess_pieces'
 require_relative 'player'
@@ -7,7 +8,7 @@ require_relative 'chess_config'
 
 # Handles high level game objects
 class Chess
-  attr_reader :board, :pieces, :players, :kings
+  attr_reader :board, :pieces, :players, :kings, :moves
   def initialize
     generate_pieces
     self.kings = pieces.filter_map { |_, piece| piece if piece.class == Pieces::King }
@@ -15,6 +16,7 @@ class Chess
       Player.new(player_color)
     end
     self.board = ChessBoard.new(pieces)
+    self.moves = []
   end
 
   def move(from, to)
@@ -24,6 +26,7 @@ class Chess
     piece.move(to) { |new_position| board.move_piece(new_position, piece) }
 
     update_pieces(from, to, piece)
+    moves << [from, to]
   end
 
   def pieces_by_player(player)
@@ -44,27 +47,26 @@ class Chess
     board.draw
   end
 
-  # def save_game(save_dir = 'saves')
-  #   Dir.mkdir save_dir unless Dir.exist? save_dir
-  #   # sets own save file name
-  #   unless save_file_name
-  #     next_file_num = Dir.glob(self.class.save_file_glob).map { |file| File.basename(file, '.save').split('-').last.to_i }.max + 1 || 0
-  #     save_file = "slot-#{next_file_num}.save"
-  #     self.save_file_name = save_file
-  #   end
-  #   File.open(File.join(save_dir, save_file_name), 'w') do |file|
-  #     file.puts Marshal.dump(self)
-  #   end
-  #   puts "Game saved to #{save_file_name}"
-  # end
+  def save_game(save_dir = CConf::SAVE_DIR)
+    Dir.mkdir save_dir unless Dir.exist? save_dir
+    save_file_name = DateTime.now.strftime('%Y%m%d%H%M%S') + '-chess.sav'
+    File.open(File.join(save_dir, save_file_name), 'w') do |file|
+      file.puts Marshal.dump(moves)
+    end
+    puts "Game saved to #{save_file_name}"
+    save_file_name
+  end
+
+  def self.load_game(save_file, save_dir = CConf::SAVE_DIR)
+    game = new
+    moves = Marshal.load(File.open(File.join(save_dir, save_file), 'r').read)
+    moves.each { |from, to| game.move(from, to) }
+    game
+  end
 
   private
 
-  attr_writer :pieces, :board, :players, :kings
-
-  # def self.save_file_glob(save_dir = 'saves')
-  #   File.join(save_dir, '*.save')
-  # end
+  attr_writer :pieces, :board, :players, :kings, :moves
 
   def generate_pieces
     self.pieces = CConf.nested_hash_expand(CConf::DEFAULT_LOCATIONS) .map do |player, piece, position|
