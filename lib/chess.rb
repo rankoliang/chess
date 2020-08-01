@@ -51,6 +51,10 @@ class Chess
     board.draw
   end
 
+  def valid_moves(piece)
+    piece.valid_moves { |position| board.at(position) }
+  end
+
   def save_game(file_name, save_dir = CConf::SAVE_DIR)
     Dir.mkdir save_dir unless Dir.exist? save_dir
     File.open(File.join(save_dir, file_name), 'w') do |file|
