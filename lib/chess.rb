@@ -61,9 +61,9 @@ class Chess
     save_file_name
   end
 
-  def self.load_game(save_file, save_dir = CConf::SAVE_DIR)
+  def self.load_game(save_file)
     game = new
-    moves = Marshal.load(File.open(File.join(save_dir, save_file), 'r').read)
+    moves = Marshal.load(File.open(save_file, 'r').read)
     moves.each { |from, to| game.move(from, to) }
     game
   end

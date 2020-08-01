@@ -73,6 +73,7 @@ DEPENDENCIES
   simplecov
   tty
   tty-cursor
+  tty-prompt
 
 BUNDLED WITH
    2.1.4
