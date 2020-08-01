@@ -67,6 +67,10 @@ class Piece
     end
   end
 
+  def type
+    self.class.to_s.split('::').last.to_sym
+  end
+
   protected
 
   def coordinates
@@ -79,10 +83,6 @@ class Piece
   attr_reader :board
   attr_writer :position, :player, :board, :coordinates, :moved
   alias moved? moved
-
-  def type
-    self.class.to_s.split('::').last.to_sym
-  end
 
   # u = up, l = left, d = down, r = right
   def diagonal_paths(direction)

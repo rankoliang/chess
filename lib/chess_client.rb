@@ -15,7 +15,7 @@ class ChessClient
     prompt_options = { per_page: 5, filter: true }
     load_game
     draw
-    piece = prompt.select('Pick a piece', piece_choices(:white), **prompt_options)
+    piece = prompt.select('Pick a piece to move', piece_choices(:white), **prompt_options)
     move = prompt.select('Pick a move', move_choices(piece), **prompt_options)
   end
 
@@ -23,13 +23,13 @@ class ChessClient
 
   def piece_choices(color)
     game.pieces_by_player(color).map do |position, piece|
-      { name: "#{position} - #{piece.class.to_s.match(/Pieces::(.*)/)[1]}", value: piece }
-    end
+      { name: "#{position} - #{piece.type}", value: piece } unless game.valid_moves(piece).empty?
+    end.compact
   end
 
   def move_choices(piece)
     game.valid_moves(piece).map do |position, move|
-      { name: "#{position} - #{move[:type]} #{move[:piece]}", value: move }
+      { name: "#{position} - #{move[:type]} #{move[:piece]} #{move[:piece]&.position}", value: move }
     end
   end
 
