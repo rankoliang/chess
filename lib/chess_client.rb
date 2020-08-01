@@ -4,6 +4,7 @@ require 'tty-cursor'
 require 'tty-prompt'
 require_relative 'chess'
 
+# Responsible for prompting the user for input
 class ChessClient
   attr_accessor :game, :prompt, :cursor
   def initialize

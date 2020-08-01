@@ -20,19 +20,20 @@ class Chess
     generate_attacking
   end
 
-  def move(from, to)
-    piece = board.at(from)
-    return false unless piece
-
-    if to
-      piece.move(to) { |new_position| board.move_piece(new_position, piece) }
-    else
-      piece.move(nil)
+  def move(chess_move, final_position)
+    piece = chess_move[:responding_piece]
+    original_position = piece.position
+    piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
+    case chess_move[:type]
+    when :en_passant, :capture
+      chess_move[:piece].move(nil)
+    when :castle
+      p piece.position
+      p chess_move[:piece]
     end
-
-    update_pieces(from, to, piece)
+    update_pieces
     generate_attacking
-    moves << [from, to]
+    moves << chess_move
   end
 
   def pieces_by_player(player)
@@ -67,7 +68,7 @@ class Chess
   def self.load_game(save_file)
     game = new
     moves = Marshal.load(File.open(save_file, 'r').read)
-    moves.each { |from, to| game.move(from, to) }
+    moves.each { |chess_move| game.move(chess_move) }
     game
   end
 
@@ -94,8 +95,9 @@ class Chess
     end.to_h
   end
 
-  def update_pieces(from, to, piece)
-    pieces.delete(from)
-    pieces[to] = piece
+  def update_pieces
+    self.pieces = pieces.values.map do |piece|
+      [piece.position, piece]
+    end.to_h
   end
 end

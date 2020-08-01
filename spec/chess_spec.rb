@@ -57,7 +57,10 @@ RSpec.describe Chess do
     end
 
     context 'when the king is threatened' do
-      before { chess.move('d8', 'e2') }
+      let(:chess_move) { { type: :free, responding_piece: chess.board.at('d8') } }
+
+      before { chess.move(chess_move, 'e2') }
+      # before { chess.move('d8', 'e2') }
 
       it 'white expects a check' do
         expect(chess).to be_check(:white)
@@ -72,58 +75,32 @@ RSpec.describe Chess do
   describe '#move' do
     let(:chess) { described_class.new }
 
+    let(:chess_move) do
+      { type: move_type,
+        responding_piece: chess.board.at(from),
+        piece: chess.board.at(to) }
+    end
+
     context 'when there is a piece at the from location' do
       let(:board) { chess.board }
       let(:from) { 'a1' }
       let(:to) { 'c3' }
+      let(:move_type) { :free }
 
       before do
         allow(chess).to receive(:board).and_return(board)
       end
 
       it do
-        expect { chess.move(from, to) }
+        expect { chess.move(chess_move, to) }
           .to(change { board.at(from) }.to(nil)
           .and(change { board.at(to) }.from(nil).to(chess.pieces[from])))
       end
 
       it do
-        expect { chess.move(from, to) }
+        expect { chess.move(chess_move, to) }
           .to(change { chess.pieces[from] }.to(nil)
           .and(change { chess.pieces[to] }.from(nil)))
-      end
-    end
-
-    context 'when there is not a piece at the from location' do
-      let(:board) { chess.board }
-      let(:from) { 'c3' }
-      let(:to) { 'a1' }
-
-      before do
-        allow(chess).to receive(:board).and_return(board)
-      end
-
-      it { expect { chess.move(from, to) } .not_to(change { board.at(from) }.from(nil)) }
-
-      it { expect { chess.move(from, to) } .not_to(change { board.at(to) }) }
-
-      it { expect { chess.move(from, to) } .not_to(change { chess.pieces[from] }.from(nil)) }
-
-      it { expect { chess.move(from, to) } .not_to(change { chess.pieces[to] }) }
-
-      it { expect { chess.move(from, to) }.not_to(change { board }) }
-    end
-
-    context 'when the parameters are not valid' do
-      let(:board) { chess.board }
-      let(:from) { 'o3' }
-      let(:to) { 'm9' }
-
-      RSpec::Matchers.define_negated_matcher :not_change, :change
-
-      it do
-        expect { chess.move(from, to) }.to raise_error(IndexError)
-          .and(not_change { board })
       end
     end
   end
