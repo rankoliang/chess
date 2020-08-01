@@ -135,7 +135,7 @@ RSpec.describe Chess do
       let(:player) { :white }
 
       it do
-        expect(chess.pieces_by_player(player)).to all(have_attributes(player: player))
+        expect(chess.pieces_by_player(player).values).to all(have_attributes(player: player))
       end
     end
 
@@ -143,7 +143,7 @@ RSpec.describe Chess do
       let(:player) { :black }
 
       it do
-        expect(chess.pieces_by_player(player)).to all(have_attributes(player: player))
+        expect(chess.pieces_by_player(player).values).to all(have_attributes(player: player))
       end
     end
 

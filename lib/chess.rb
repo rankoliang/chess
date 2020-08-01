@@ -36,7 +36,7 @@ class Chess
   end
 
   def pieces_by_player(player)
-    pieces.filter_map { |_, piece| piece if piece.player == player }
+    pieces.filter { |_, piece| piece.player == player }
   end
 
   def king_locations
@@ -51,10 +51,9 @@ class Chess
     board.draw
   end
 
-  def save_game(save_dir = CConf::SAVE_DIR)
+  def save_game(file_name, save_dir = CConf::SAVE_DIR)
     Dir.mkdir save_dir unless Dir.exist? save_dir
-    save_file_name = DateTime.now.strftime('%Y%m%d%H%M%S') + '-chess.sav'
-    File.open(File.join(save_dir, save_file_name), 'w') do |file|
+    File.open(File.join(save_dir, file_name), 'w') do |file|
       file.puts Marshal.dump(moves)
     end
     puts "Game saved to #{save_file_name}"
