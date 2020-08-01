@@ -6,11 +6,12 @@ require_relative 'chess_config'
 
 # Base class that chess pieces inherit from
 class Piece
-  attr_reader :position, :player
+  attr_reader :position, :player, :moved
   # position is an array in the format [column_index, row_index]
   def initialize(position: nil, player: nil)
     self.player = player
     self.position = position
+    self.moved = false
   end
 
   # Outputs the piece's unicode character
@@ -22,9 +23,11 @@ class Piece
   end
 
   # Moves a piece to any space with no restrictions
-  def move(new_position, board)
-    board.move_piece(new_position, self)
+  def move(new_position)
+    yield(new_position, self) if block_given?
     self.position = new_position
+    self.moved = true
+    nil
   end
 
   def offset_position(move)
@@ -33,6 +36,10 @@ class Piece
       coordinates.column + column_offset,
       coordinates.row + row_offset
     )
+  end
+
+  def enemy
+    { white: :black, black: :white }[player]
   end
 
   def enemy?(other)
@@ -53,32 +60,47 @@ class Piece
     false
   end
 
-  private
-
-  attr_reader :board
-  attr_writer :position, :player, :board, :coordinates
-
-  def type
-    self.class.to_s.split('::').last.to_sym
+  def valid_moves(&piece_getter)
+    # selects all level 0 moves (moves that are either a capture or a free move)
+    all_moves(&piece_getter).select do |_, move_info|
+      move_info && move_info[:level].zero?
+    end
   end
 
-  # TODO: optimize by caching this result (wishlist)
+  protected
+
   def coordinates
     column_index, row_index = *Board.notation_to_coord(position)
     OpenStruct.new(column: column_index, row: row_index)
   end
 
+  private
+
+  attr_reader :board
+  attr_writer :position, :player, :board, :coordinates, :moved
+  alias moved? moved
+
+  def type
+    self.class.to_s.split('::').last.to_sym
+  end
+
   # u = up, l = left, d = down, r = right
-  def diagonal_moves(direction)
+  def diagonal_paths(direction)
     off_gen = DiagonalOffsetGenerator.new(coordinates, direction)
     off_gen.moves
   end
 
-  def validated_moves(directions, occupying_piece_get)
-    directions.map do |direction|
-      moves = yield(direction)
-      move_validator = MoveValidator.new
-      move_validator.validate(self, moves, &occupying_piece_get)
-    end.reduce(Set.new, &:union)
+  # u = up, l = left, d = down, r = right
+  def cardinal_paths(direction)
+    off_gen = CardinalOffsetGenerator.new(coordinates, direction)
+    off_gen.moves
+  end
+
+  def validated_moves(paths, piece_getter)
+    paths.map do |path|
+      moves = block_given? ? yield(path) : path
+      move_validator = MoveValidator.new(self, &piece_getter)
+      move_validator.validate(moves)
+    end.reduce({}, &:merge)
   end
 end

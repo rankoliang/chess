@@ -25,6 +25,48 @@ RSpec.describe Chess do
     it 'creates two players' do
       expect(chess.players.size).to eq 2
     end
+
+    it 'creates two kings' do
+      expect(chess.kings.size).to eq 2
+    end
+  end
+
+  describe '#king_locations' do
+    subject(:locations) { chess.king_locations }
+
+    let(:chess) { described_class.new }
+
+    it 'returns the king locations' do
+      expect(locations).to contain_exactly [:white, 'e1'], [:black, 'e8']
+    end
+  end
+
+  describe '#check?' do
+    let(:chess) { described_class.new }
+
+    context 'when the side is black' do
+      it 'does not initially expect a check' do
+        expect(chess).not_to be_check(:black)
+      end
+    end
+
+    context 'when the side is white' do
+      it 'does not initially expect a check' do
+        expect(chess).not_to be_check(:white)
+      end
+    end
+
+    context 'when the king is threatened' do
+      before { chess.move('d8', 'e2') }
+
+      it 'white expects a check' do
+        expect(chess).to be_check(:white)
+      end
+
+      it 'black does not expect a check' do
+        expect(chess).not_to be_check(:black)
+      end
+    end
   end
 
   describe '#move' do
@@ -87,15 +129,13 @@ RSpec.describe Chess do
   end
 
   describe '#pieces_by_player' do
-    subject(:pieces) { chess.pieces_by_player(player).values }
-
     let(:chess) { described_class.new }
 
     context 'when the player is :white' do
       let(:player) { :white }
 
       it do
-        expect(chess.pieces_by_player(player).values).to all(have_attributes(player: player))
+        expect(chess.pieces_by_player(player)).to all(have_attributes(player: player))
       end
     end
 
@@ -103,7 +143,7 @@ RSpec.describe Chess do
       let(:player) { :black }
 
       it do
-        expect(chess.pieces_by_player(player).values).to all(have_attributes(player: player))
+        expect(chess.pieces_by_player(player)).to all(have_attributes(player: player))
       end
     end
 
@@ -111,7 +151,7 @@ RSpec.describe Chess do
       let(:player) { :blue }
 
       it do
-        expect(chess.pieces_by_player(player).values).to be_empty
+        expect(chess.pieces_by_player(player)).to be_empty
       end
     end
   end

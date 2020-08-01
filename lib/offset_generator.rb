@@ -9,6 +9,8 @@ class OffsetGenerator
 
     self.coordinates = coordinates
     self.steps = step_directions.map do |axis, step_map|
+      # resolves a direction (u, l, r, d) into a step size
+      # print "#{axis} #{directions[axis]} #{step_map[directions[axis]]}"
       directional_step = step_map[directions[axis]] || 0
       [axis, directional_step]
     end.to_h
@@ -16,19 +18,15 @@ class OffsetGenerator
   end
 
   def moves
-    generate_moves.to_h
+    generate_moves.to_a
   end
 
   private
 
-  attr_accessor :coordinates, :steps, :offset
+  attr_accessor :coordinates, :steps, :offset, :directions
 
   def step_directions
-    raise NotImplementedError
-  end
-
-  def direction
-    raise NotImplementedError
+    @step_directions ||= { vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 } }
   end
 
   def generate_moves
@@ -56,15 +54,19 @@ end
 # Generates diagonal offsets
 class DiagonalOffsetGenerator < OffsetGenerator
   def pre_initialize(_coordinates, direction)
-    # Hash of directions (u, l, r, d)
+    # (u, l, r, d) is mapped to vertical or horizonal
     self.directions = Hash[%i[vert hor].zip(direction.split('').map(&:to_sym))]
   end
+end
 
-  private
-
-  attr_accessor :directions
-
-  def step_directions
-    @step_directions ||= { vert: { u: 1, d: -1 }, hor: { r: 1, l: -1 } }
+# Generates offsets in the cardinal directions
+class CardinalOffsetGenerator < OffsetGenerator
+  def pre_initialize(_coordinates, direction)
+    direction = direction.to_sym
+    # Hash of directions (u, l, r, d)
+    self.directions = case direction.to_s
+                      when /u|d/ then { vert: direction }
+                      when /r|l/ then { hor: direction }
+                      end
   end
 end
