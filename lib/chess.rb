@@ -21,7 +21,8 @@ class Chess
   end
 
   def move(chess_move, final_position)
-    piece = chess_move[:responding_piece]
+    serialized_args = Marshal.dump([chess_move, final_position])
+    piece = board.at(chess_move[:responding_piece].position)
     original_position = piece.position
     piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     case chess_move[:type]
@@ -33,7 +34,7 @@ class Chess
     end
     update_pieces
     generate_attacking
-    moves << chess_move
+    moves << serialized_args
   end
 
   def pieces_by_player(player)
@@ -61,14 +62,14 @@ class Chess
     File.open(File.join(save_dir, file_name), 'w') do |file|
       file.puts Marshal.dump(moves)
     end
-    puts "Game saved to #{save_file_name}"
-    save_file_name
+    puts "Game saved to #{file_name}"
+    file_name
   end
 
   def self.load_game(save_file)
     game = new
     moves = Marshal.load(File.open(save_file, 'r').read)
-    moves.each { |chess_move| game.move(chess_move) }
+    moves.each { |move_args| game.move(*Marshal.load(move_args)) }
     game
   end
 

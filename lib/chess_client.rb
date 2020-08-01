@@ -16,8 +16,13 @@ class ChessClient
     prompt_options = { per_page: 5, filter: true }
     load_game
     draw
-    piece = prompt.select('Pick a piece to move', piece_choices(:white), **prompt_options)
-    move = prompt.select('Pick a move', move_choices(piece), **prompt_options)
+    3.times do
+      piece = prompt.select('Pick a piece to move', piece_choices(:white), **prompt_options)
+      move, position = prompt.select('Pick a move', move_choices(piece), **prompt_options)
+      game.move(move, position)
+      draw
+    end
+    # save_game
   end
 
   private
@@ -30,7 +35,7 @@ class ChessClient
 
   def move_choices(piece)
     game.valid_moves(piece).map do |position, move|
-      { name: "#{position} - #{move[:type]} #{move[:piece]} #{move[:piece]&.position}", value: move }
+      { name: "#{position} - #{move[:type]} #{move[:piece]} #{move[:piece]&.position}", value: [move, position] }
     end
   end
 
@@ -40,8 +45,9 @@ class ChessClient
   end
 
   def save_game
-    default_save_name = DateTime.now.strftime('%Y%m%d%H%M%S') + '.chsav'
-    p prompt.ask('Name your save:', default: default_save_name).gsub(/ /, '_') + '.chsav'
+    default_save_name = DateTime.now.strftime('%Y%m%d%H%M%S')
+    file_name = prompt.ask('Name your save:', default: default_save_name).gsub(/ /, '_') + '.chsav'
+    game.save_game(file_name)
     # TODO: call the save game method and exit the game
   end
 
