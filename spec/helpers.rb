@@ -9,11 +9,12 @@ module Helpers
     end
   end
 
-  def move(type, piece_location, level, capturable: true, movable: true)
+  def move(type, piece_location, level, responding_piece, capturable: true, movable: true)
     { type: type,
       piece: piece_get.call(piece_location),
       level: level,
       capturable: capturable,
-      movable: movable }
+      movable: movable,
+      responding_piece: responding_piece }
   end
 end

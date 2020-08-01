@@ -8,7 +8,7 @@ require_relative 'chess_config'
 
 # Handles high level game objects
 class Chess
-  attr_reader :board, :pieces, :players, :kings, :moves
+  attr_reader :board, :pieces, :players, :kings, :moves, :attacking
   def initialize
     generate_pieces
     self.kings = pieces.filter_map { |_, piece| piece if piece.class == Pieces::King }
@@ -17,15 +17,21 @@ class Chess
     end
     self.board = ChessBoard.new(pieces)
     self.moves = []
+    generate_attacking
   end
 
   def move(from, to)
     piece = board.at(from)
     return false unless piece
 
-    piece.move(to) { |new_position| board.move_piece(new_position, piece) }
+    if to
+      piece.move(to) { |new_position| board.move_piece(new_position, piece) }
+    else
+      piece.move(nil)
+    end
 
     update_pieces(from, to, piece)
+    generate_attacking
     moves << [from, to]
   end
 
@@ -38,9 +44,7 @@ class Chess
   end
 
   def check?(color)
-    pieces_by_player(color).map(&:valid_moves).any? do |move|
-      move == king_locations[CConf.opponent(color)]
-    end
+    attacking[king_locations[color]].any? { |move| move[:level] == 0 }
   end
 
   def show
@@ -66,7 +70,18 @@ class Chess
 
   private
 
-  attr_writer :pieces, :board, :players, :kings, :moves
+  attr_writer :pieces, :board, :players, :kings, :moves, :attacking
+
+  # generates a hash where the key is a position and the value are the
+  # moves that are attacking it
+  def generate_attacking(attacking_pieces = pieces.values)
+    attacking_hash = Hash.new { |attacking, position| attacking[position] = [] }
+    self.attacking = attacking_pieces.each_with_object(attacking_hash) do |piece, attacking|
+      piece.all_moves { |position| board.at(position) }.each do |position, move|
+        attacking[position] << move if move[:capturable]
+      end
+    end
+  end
 
   def generate_pieces
     self.pieces = CConf.nested_hash_expand(CConf::DEFAULT_LOCATIONS) .map do |player, piece, position|

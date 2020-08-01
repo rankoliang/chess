@@ -19,7 +19,7 @@ module BlockingStrategy
       return unless move_type
 
       { type: move_type, piece: piece, level: blocking_level,
-        capturable: capturable, movable: movable }
+        capturable: capturable, movable: movable, responding_piece: main }
     end
 
     private

@@ -55,6 +55,18 @@ RSpec.describe Chess do
         expect(chess).not_to be_check(:white)
       end
     end
+
+    context 'when the king is threatened' do
+      before { chess.move('d8', 'e2') }
+
+      it 'white expects a check' do
+        expect(chess).to be_check(:white)
+      end
+
+      it 'black does not expect a check' do
+        expect(chess).not_to be_check(:black)
+      end
+    end
   end
 
   describe '#move' do

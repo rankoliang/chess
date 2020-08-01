@@ -14,7 +14,7 @@ RSpec.describe MoveValidator do
     subject(:validator) { described_class.new(piece, :Standard, &piece_get) }
 
     let(:piece_get) { proc { |position| board.at(position) } }
-    let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: true, movable: true } }
+    let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: true, movable: true, responding_piece: piece } }
     let(:piece) { Piece.new(position: position, player: player_color) }
     let(:valid_moves) { validator.validate(moves) }
 
@@ -45,7 +45,7 @@ RSpec.describe MoveValidator do
 
       it 'returns all moves' do
         expect(valid_moves).to eq(
-          move_hash_generate(move_list, { type: :free, piece: nil, level: 0, capturable: true, movable: true })
+          move_hash_generate(move_list, { type: :free, piece: nil, level: 0, capturable: true, movable: true, responding_piece: piece })
         )
       end
     end
@@ -58,7 +58,7 @@ RSpec.describe MoveValidator do
       it 'returns all moves' do
         expect(valid_moves).to eq(
           move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-            { 'a5' => move(:blocked, 'a5', 1) }, move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1))
+            { 'a5' => move(:blocked, 'a5', 1, piece) }, move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1, piece))
           )
         )
       end
@@ -71,10 +71,10 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          { 'a5' => move(:blocked, 'a5', 1),
-            'a6' => move(:free, 'a5', 1),
-            'a7' => move(:blocked, 'a7', 2),
-            'a8' => move(:free, 'a7', 2) }
+          { 'a5' => move(:blocked, 'a5', 1, piece),
+            'a6' => move(:free, 'a5', 1, piece),
+            'a7' => move(:blocked, 'a7', 2, piece),
+            'a8' => move(:free, 'a7', 2, piece) }
         )
       end
 
@@ -90,8 +90,8 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          { 'a5' => move(:capture, 'a5', 0) },
-          move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1))
+          { 'a5' => move(:capture, 'a5', 0, piece) },
+          move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1, piece))
         )
       end
 
@@ -107,10 +107,10 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          { 'a5' => move(:capture, 'a5', 0),
-            'a6' => move(:free, 'a5', 1),
-            'a7' => move(:capture, 'a7', 1),
-            'a8' => move(:free, 'a7', 2) }
+          { 'a5' => move(:capture, 'a5', 0, piece),
+            'a6' => move(:free, 'a5', 1, piece),
+            'a7' => move(:capture, 'a7', 1, piece),
+            'a8' => move(:free, 'a7', 2, piece) }
         )
       end
 
@@ -126,10 +126,10 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          { 'a5' => move(:capture, 'a5', 0),
-            'a6' => move(:free, 'a5', 1),
-            'a7' => move(:blocked, 'a7', 2),
-            'a8' => move(:free, 'a7', 2) }
+          { 'a5' => move(:capture, 'a5', 0, piece),
+            'a6' => move(:free, 'a5', 1, piece),
+            'a7' => move(:blocked, 'a7', 2, piece),
+            'a8' => move(:free, 'a7', 2, piece) }
         )
       end
 
@@ -145,10 +145,10 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          { 'a5' => move(:blocked, 'a5', 1),
-            'a6' => move(:free, 'a5', 1),
-            'a7' => move(:capture, 'a7', 1),
-            'a8' => move(:free, 'a7', 2) }
+          { 'a5' => move(:blocked, 'a5', 1, piece),
+            'a6' => move(:free, 'a5', 1, piece),
+            'a7' => move(:capture, 'a7', 1, piece),
+            'a8' => move(:free, 'a7', 2, piece) }
         )
       end
 
@@ -164,11 +164,11 @@ RSpec.describe MoveValidator do
         include_context 'when validating', 'a2', enemies: %w[a4]
 
         let(:moves) { (1..2).map { |i| [0, i] } }
-        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true, responding_piece: piece } }
 
         let(:expected_moves) do
           { 'a3' => unblocked_move,
-            'a4' => move(:blocked, 'a4', 1, capturable: false, movable: true) }
+            'a4' => move(:blocked, 'a4', 1, piece, capturable: false, movable: true) }
         end
 
         it 'returns all moves' do
@@ -182,11 +182,11 @@ RSpec.describe MoveValidator do
         include_context 'when validating', 'a2', enemies: %w[a3], friendly: %w[a4]
 
         let(:moves) { (1..2).map { |i| [0, i] } }
-        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true, responding_piece: piece } }
 
         let(:expected_moves) do
-          { 'a3' => move(:blocked, 'a3', 1, capturable: false),
-            'a4' => move(:blocked, 'a4', 2, capturable: false) }
+          { 'a3' => move(:blocked, 'a3', 1, piece, capturable: false),
+            'a4' => move(:blocked, 'a4', 2, piece, capturable: false) }
         end
 
         it 'returns all moves' do
@@ -202,15 +202,15 @@ RSpec.describe MoveValidator do
         include_context 'when validating', 'b2', enemies: %w[a3]
 
         let(:moves) { [[[-1, 1]], [[1, 1]]] }
-        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true } }
+        let(:unblocked_move) { { type: :free, piece: nil, level: 0, capturable: false, movable: true, responding_piece: piece } }
         let(:valid_moves) do
           moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
         end
 
         let(:expected_moves) do
-          { 'a3' => move(:capture, 'a3', 0, movable: false),
+          { 'a3' => move(:capture, 'a3', 0, piece, movable: false),
             'c3' => { type: :blocked, piece: nil,
-                      level: 1, capturable: true, movable: false } }
+                      level: 1, capturable: true, movable: false, responding_piece: piece } }
         end
 
         it 'returns all moves' do
@@ -230,9 +230,9 @@ RSpec.describe MoveValidator do
         moves.reduce({}) { |valid_moves, path| valid_moves.merge(validator.validate(path)) }
       end
       let(:expected_moves) do
-        { 'f6' => move(:en_passant, 'f5', 0, movable: false),
+        { 'f6' => move(:en_passant, 'f5', 0, piece, movable: false),
           'd6' => { type: :blocked, piece: nil,
-                    level: 1, capturable: true, movable: false } }
+                    level: 1, capturable: true, movable: false, responding_piece: piece } }
       end
       let(:piece) { Pieces::Pawn.new(position: position, player: player_color) }
 
@@ -257,8 +257,8 @@ RSpec.describe MoveValidator do
 
         let(:rooks) { [['a1'], ['h1']] }
         let(:expected_moves) do
-          { 'c1' => move(:castle, 'a1', 0, capturable: false),
-            'g1' => move(:castle, 'h1', 0, capturable: false) }
+          { 'c1' => move(:castle, 'a1', 0, piece, capturable: false),
+            'g1' => move(:castle, 'h1', 0, piece, capturable: false) }
         end
 
         before do
@@ -278,8 +278,8 @@ RSpec.describe MoveValidator do
 
         let(:rooks) { [['a8'], ['h8']] }
         let(:expected_moves) do
-          { 'c8' => move(:castle, 'a8', 0, capturable: false),
-            'g8' => move(:castle, 'h8', 0, capturable: false) }
+          { 'c8' => move(:castle, 'a8', 0, piece, capturable: false),
+            'g8' => move(:castle, 'h8', 0, piece, capturable: false) }
         end
 
         before do
@@ -299,7 +299,7 @@ RSpec.describe MoveValidator do
 
         let(:rooks) { [['a8'], ['h8']] }
         let(:expected_moves) do
-          { 'c8' => move(:castle, 'a8', 0, capturable: false) }
+          { 'c8' => move(:castle, 'a8', 0, piece, capturable: false) }
         end
 
         before do
@@ -356,7 +356,7 @@ RSpec.describe MoveValidator do
         include_context 'when validating', 'e1', :white
         let(:valid_moves) { pieces.reduce({}) { |moves, piece| moves.merge(validator.validate(piece)) } }
         let(:expected_moves) do
-          { 'c1' => move(:castle, 'a1', 0, capturable: false) }
+          { 'c1' => move(:castle, 'a1', 0, piece, capturable: false) }
         end
 
         let(:pieces) { [['a1'], ['h1']] }
