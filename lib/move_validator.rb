@@ -19,7 +19,7 @@ class MoveValidator
   end
 
   def validate(moves)
-    self.blocking_strategy = BlockingStrategy.const_get(blocking_type).new
+    self.blocking_strategy = BlockingStrategy.const_get(blocking_type).new(&piece_get)
     catch :validated do
       moves.each_with_object({}) do |move, validated|
         validated_update(move, validated, &piece_get)

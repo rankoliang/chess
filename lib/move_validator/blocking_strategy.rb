@@ -4,13 +4,14 @@
 module BlockingStrategy
   # Blocked by friendly units and after a capture
   class Standard
-    def initialize
+    def initialize(&piece_get)
       self.blocking_level = 0
       self.move_type = :free
       # the piece can capture an enemy piece at this block
       self.capturable = true
       # the piece can move to this position freely
       self.movable = true
+      self.piece_get = piece_get if block_given?
     end
 
     def move_info(main, other)
@@ -25,7 +26,8 @@ module BlockingStrategy
     private
 
     attr_accessor :capture, :blocking_level, :piece,
-                  :move_type, :capturable, :movable
+                  :move_type, :capturable, :movable,
+                  :piece_get
 
     def post_capture_update
       return if move_type == :free
@@ -116,12 +118,23 @@ module BlockingStrategy
     def post_capture_update(*_args, **_kwargs); end
 
     def move_info_update(main, other)
-      if other.class == Pieces::Rook && !main.moved? && !other.moved?
+      if other.class == Pieces::Rook && !main.moved? && !other.moved? && check_inbetween(main, other)
         self.move_type = :castle
         self.piece = other
       else
         self.move_type = nil
       end
+    end
+
+    def check_inbetween(main, rook)
+      return unless rook
+
+      columns = rook.coordinates.column - main.coordinates.column
+      # generates the offsets between the rook and the king
+      # and checks the board for any pieces inbetween them
+      [columns + 1, 1].min.upto([columns - 1, -1].max).map do |column_offset|
+        [column_offset, 0]
+      end.none? { |offset| piece_get.call(main.offset_position(offset)) }
     end
   end
 end

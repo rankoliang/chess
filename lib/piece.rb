@@ -71,8 +71,6 @@ class Piece
     self.class.to_s.split('::').last.to_sym
   end
 
-  protected
-
   def coordinates
     column_index, row_index = *Board.notation_to_coord(position)
     OpenStruct.new(column: column_index, row: row_index)
