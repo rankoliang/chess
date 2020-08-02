@@ -3,6 +3,7 @@
 require 'tty-cursor'
 require 'tty-prompt'
 require_relative 'chess'
+require_relative 'chess_config'
 
 # Responsible for prompting the user for input
 class ChessClient
@@ -30,7 +31,6 @@ class ChessClient
     player = :white
     loop do
       draw(player)
-      moves_by_destination(player)
       selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **prompt_options)
       case selection
       when :piece
@@ -71,9 +71,8 @@ class ChessClient
   end
 
   def moves_by_destination(player)
-    game.destinations_move_select do |move|
-      move[:level] == 0 && move[:responding_piece].player == player
-    end.map do |position, moves|
+    # p check_filtered_moves(player)
+    check_filtered_moves(player).map do |position, moves|
       if moves.size == 1
         move_selection(moves.first, position, &MOVE_SIGNATURE)
       else
@@ -85,6 +84,19 @@ class ChessClient
     end
   end
 
+  def check_filtered_moves(player)
+    game.destinations_move_select do |move|
+      move[:level] == 0 && move[:responding_piece].player == player
+    end.map do |position, moves|
+      moves = moves.reject do |move|
+        dummy_game = Chess.replay_moves(game.moves) 
+        dummy_game.move(move, position)
+        dummy_game.check?(player)
+      end
+      [position, moves] if !moves.empty?
+    end.compact.to_h
+  end
+
   def destination_move_choices(moves, position)
     moves.map do |move|
       move_selection(move, position, &MOVE_SIGNATURE)
@@ -94,7 +106,15 @@ class ChessClient
   def draw(player)
     print cursor.clear_screen, cursor.move_to
     game.board.draw
-    puts "Turn #{game.moves.size}, Current player: #{player.upcase}#{' IN CHECK' if game.check?(player)}"
+    puts "Turn #{game.moves.size}, Current player: #{player.upcase}"
+    [:white, :black].each do |player|
+      filtered_moves = check_filtered_moves(player)
+      if filtered_moves.empty?
+        puts "#{player.to_s.upcase} IN CHECKMATE"
+      elsif game.check? player
+        puts "#{player.to_s.upcase} IN CHECK"
+      end
+    end
     puts
   end
 
