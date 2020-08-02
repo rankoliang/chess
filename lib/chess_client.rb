@@ -16,10 +16,24 @@ class ChessClient
     prompt_options = { per_page: 5, filter: true }
     load_game
     draw
-    3.times do
-      piece = prompt.select('Pick a piece to move', piece_choices(:white), **prompt_options)
-      move, position = prompt.select('Pick a move', move_choices(piece), **prompt_options)
-      game.move(move, position)
+    player = :white
+    loop do
+      selection = prompt.select('What would you like to do?', [{ name: 'Pick a piece', value: :piece },
+                                                               { name: 'Save the game', value: :save },
+                                                               { name: 'Change the player', value: :player },
+                                                               { name: 'Exit', value: :exit }], **prompt_options)
+      case selection
+      when :piece
+        piece = prompt.select('Pick a piece to move', piece_choices(player), **prompt_options)
+        move, position = prompt.select('Pick a move', move_choices(piece), **prompt_options)
+        game.move(move, position)
+      when :player
+        player = prompt.select('Choose a player', %i[white black])
+      when :save
+        save_game
+      when :exit
+        exit
+      end
       draw
     end
     # save_game

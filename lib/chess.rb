@@ -35,6 +35,8 @@ class Chess
         board.move_piece(new_position, rook)
       end
     end
+    # TODO: set en_passant to adjacent pawns if a pawn makes a double move
+    # reset en passants immediately before this step.
     update_pieces
     generate_attacking
     moves << serialized_args
@@ -85,6 +87,8 @@ class Chess
   def generate_attacking(attacking_pieces = pieces.values)
     attacking_hash = Hash.new { |attacking, position| attacking[position] = [] }
     self.attacking = attacking_pieces.each_with_object(attacking_hash) do |piece, attacking|
+      next unless piece.position
+
       piece.all_moves { |position| board.at(position) }.each do |position, move|
         attacking[position] << move if move[:capturable]
       end
@@ -101,7 +105,7 @@ class Chess
 
   def update_pieces
     self.pieces = pieces.values.map do |piece|
-      [piece.position, piece]
-    end.to_h
+      [piece.position, piece] if piece.position
+    end.compact.to_h
   end
 end
