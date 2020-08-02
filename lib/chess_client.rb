@@ -6,11 +6,18 @@ require_relative 'chess'
 
 # Responsible for prompting the user for input
 class ChessClient
-  MENU_SELECTIONS = [{ name: 'Pick a piece', value: :piece },
+  MENU_SELECTIONS = [{ name: 'Pick a destination', value: :destination },
+                     { name: 'Pick a piece', value: :piece },
                      { name: 'Undo last move', value: :undo },
                      { name: 'Save the game', value: :save },
                      { name: 'Change the player', value: :player },
                      { name: 'Exit', value: :exit }].freeze
+
+  MOVE_SIGNATURE = proc do |move|
+    responding_piece = move[:responding_piece]
+    " by #{responding_piece} #{responding_piece.position}"
+  end
+
   attr_accessor :game, :prompt, :cursor
   def initialize
     self.prompt = TTY::Prompt.new(help_color: :red)
@@ -23,11 +30,19 @@ class ChessClient
     player = :white
     loop do
       draw(player)
+      moves_by_destination(player)
       selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **prompt_options)
       case selection
       when :piece
         piece = prompt.select('Pick a piece to move', piece_choices(player), **prompt_options)
         move, position = prompt.select('Pick a move', move_choices(piece), **prompt_options)
+        game.move(move, position)
+      when :destination
+        move, position = prompt.select('Make a move', moves_by_destination(player), **prompt_options)
+        # IMPROVEMENT: clean up code smell
+        if move.is_a? Array
+          move, position = prompt.select('Pick a move', destination_move_choices(move, position), **prompt_options)
+        end
         game.move(move, position)
       when :undo
         self.game = game.undo
@@ -39,7 +54,6 @@ class ChessClient
         exit
       end
     end
-    # save_game
   end
 
   private
@@ -52,12 +66,28 @@ class ChessClient
 
   def move_choices(piece)
     game.valid_moves(piece).map do |position, move|
-      move_type = move[:type]
-      if move_type == :free
-        { name: position, value: [move, position] }
+      move_selection(move, position)
+    end
+  end
+
+  def moves_by_destination(player)
+    game.destinations_move_select do |move|
+      move[:level] == 0 && move[:responding_piece].player == player
+    end.map do |position, moves|
+      if moves.size == 1
+        move_selection(moves.first, position, &MOVE_SIGNATURE)
       else
-        { name: "#{position} - #{move_type} #{move[:piece]} #{move[:piece]&.position}", value: [move, position] }
+        move_types = moves.map do |move|
+          "#{move[:responding_piece]} #{move[:responding_piece].position}#{' ' + move[:type].to_s if move[:type] != :free}"
+        end
+        { name: "#{position} by #{move_types.join(', ')}", value: [moves, position] }
       end
+    end
+  end
+
+  def destination_move_choices(moves, position)
+    moves.map do |move|
+      move_selection(move, position, &MOVE_SIGNATURE)
     end
   end
 
@@ -91,6 +121,17 @@ class ChessClient
                 when 'Exit'
                   exit
                 end
+  end
+
+  # returns a single selection for a given move
+  def move_selection(move, position, &piece_signature)
+    move_type = move[:type]
+    piece_signature = block_given? ? yield(move) : ''
+    if move_type == :free
+      { name: position.to_s + piece_signature, value: [move, position] }
+    else
+      { name: "#{position} #{move_type} #{move[:piece]} #{move[:piece]&.position}" + piece_signature, value: [move, position] }
+    end
   end
 end
 

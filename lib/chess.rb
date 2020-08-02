@@ -8,7 +8,7 @@ require_relative 'chess_config'
 
 # Handles high level game objects
 class Chess
-  attr_reader :board, :pieces, :players, :kings, :moves, :attacking
+  attr_reader :board, :pieces, :players, :kings, :moves, :destinations
   def initialize
     generate_pieces
     self.kings = pieces.filter_map { |_, piece| piece if piece.class == Pieces::King }
@@ -17,7 +17,7 @@ class Chess
     end
     self.board = ChessBoard.new(pieces)
     self.moves = []
-    generate_attacking
+    generate_destinations
   end
 
   def move(chess_move, final_position)
@@ -38,7 +38,7 @@ class Chess
     # TODO: set en_passant to adjacent pawns if a pawn makes a double move
     # reset en passants immediately before this step.
     update_pieces
-    generate_attacking
+    generate_destinations
     moves << serialized_args
   end
 
@@ -51,7 +51,10 @@ class Chess
   end
 
   def check?(color)
-    attacking[king_locations[color]].any? { |move| move[:level] == 0 }
+    dangerous_moves = destinations_move_select do |move|
+      move[:responding_piece] != color && move[:level] == 0 && move[:capturable]
+    end
+    !!dangerous_moves[king_locations[color]]
   end
 
   def show
@@ -89,19 +92,26 @@ class Chess
     game
   end
 
+  def destinations_move_select(&move_filter)
+    destinations.map do |position, moves|
+      moves_by_opponent = moves.select(&move_filter)
+      [position, moves_by_opponent.empty? ? nil : moves_by_opponent]
+    end.to_h.compact
+  end
+
   private
 
-  attr_writer :pieces, :board, :players, :kings, :moves, :attacking
+  attr_writer :pieces, :board, :players, :kings, :moves, :destinations
 
   # generates a hash where the key is a position and the value are the
-  # moves that are attacking it
-  def generate_attacking(attacking_pieces = pieces.values)
-    attacking_hash = Hash.new { |attacking, position| attacking[position] = [] }
-    self.attacking = attacking_pieces.each_with_object(attacking_hash) do |piece, attacking|
+  # moves that can act at that position
+  def generate_destinations
+    destinations_hash = Hash.new { |destinations, position| destinations[position] = [] }
+    self.destinations = pieces.values.each_with_object(destinations_hash) do |piece, destinations|
       next unless piece.position
 
       piece.all_moves { |position| board.at(position) }.each do |position, move|
-        attacking[position] << move if move[:capturable]
+        destinations[position] << move
       end
     end
   end
