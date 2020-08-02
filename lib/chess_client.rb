@@ -124,13 +124,14 @@ class ChessClient
   end
 
   # returns a single selection for a given move
-  def move_selection(move, position, &piece_signature)
+  def move_selection(move, position)
     move_type = move[:type]
     piece_signature = block_given? ? yield(move) : ''
     if move_type == :free
       { name: position.to_s + piece_signature, value: [move, position] }
     else
-      { name: "#{position} #{move_type} #{move[:piece]} #{move[:piece]&.position}" + piece_signature, value: [move, position] }
+      { name: "#{position} #{move_type} #{move[:piece]} #{move[:piece]&.position}" + piece_signature,
+        value: [move, position] }
     end
   end
 end

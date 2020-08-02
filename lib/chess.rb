@@ -24,10 +24,10 @@ class Chess
     serialized_args = Marshal.dump([chess_move, final_position])
     piece = board.at(chess_move[:responding_piece].position)
     orig_coords = piece.coordinates
-    piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     case chess_move[:type]
     when :en_passant, :capture
-      chess_move[:piece].move(nil)
+      captured_piece = board.at(chess_move[:piece].position)
+      captured_piece.move(nil)
     when :castle
       rook = board.at(chess_move[:piece].position)
       column_offset = orig_coords.column - piece.coordinates.column < 0 ? -1 : 1
@@ -35,6 +35,7 @@ class Chess
         board.move_piece(new_position, rook)
       end
     end
+    piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     # TODO: set en_passant to adjacent pawns if a pawn makes a double move
     # reset en passants immediately before this step.
     update_pieces
