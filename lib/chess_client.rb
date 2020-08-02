@@ -6,6 +6,11 @@ require_relative 'chess'
 
 # Responsible for prompting the user for input
 class ChessClient
+  MENU_SELECTIONS = [{ name: 'Pick a piece', value: :piece },
+                     { name: 'Undo last move', value: :undo },
+                     { name: 'Save the game', value: :save },
+                     { name: 'Change the player', value: :player },
+                     { name: 'Exit', value: :exit }].freeze
   attr_accessor :game, :prompt, :cursor
   def initialize
     self.prompt = TTY::Prompt.new(help_color: :red)
@@ -15,18 +20,17 @@ class ChessClient
   def connect
     prompt_options = { per_page: 5, filter: true }
     load_game
-    draw
     player = :white
     loop do
-      selection = prompt.select('What would you like to do?', [{ name: 'Pick a piece', value: :piece },
-                                                               { name: 'Save the game', value: :save },
-                                                               { name: 'Change the player', value: :player },
-                                                               { name: 'Exit', value: :exit }], **prompt_options)
+      draw(player)
+      selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **prompt_options)
       case selection
       when :piece
         piece = prompt.select('Pick a piece to move', piece_choices(player), **prompt_options)
         move, position = prompt.select('Pick a move', move_choices(piece), **prompt_options)
         game.move(move, position)
+      when :undo
+        self.game = game.undo
       when :player
         player = prompt.select('Choose a player', %i[white black])
       when :save
@@ -34,7 +38,6 @@ class ChessClient
       when :exit
         exit
       end
-      draw
     end
     # save_game
   end
@@ -49,17 +52,24 @@ class ChessClient
 
   def move_choices(piece)
     game.valid_moves(piece).map do |position, move|
-      { name: "#{position} - #{move[:type]} #{move[:piece]} #{move[:piece]&.position}", value: [move, position] }
+      move_type = move[:type]
+      if move_type == :free
+        { name: position, value: [move, position] }
+      else
+        { name: "#{position} - #{move_type} #{move[:piece]} #{move[:piece]&.position}", value: [move, position] }
+      end
     end
   end
 
-  def draw
+  def draw(player)
     print cursor.clear_screen, cursor.move_to
     game.board.draw
+    puts "Turn #{game.moves.size}, Current player: #{player.upcase}#{' IN CHECK' if game.check?(player)}"
+    puts
   end
 
   def save_game
-    default_save_name = DateTime.now.strftime('%Y%m%d%H%M%S')
+    default_save_name = DateTime.now.strftime('%Y%m%d%_H%M%S')
     file_name = prompt.ask('Name your save:', default: default_save_name).gsub(/ /, '_') + '.chsav'
     game.save_game(file_name)
     # TODO: call the save game method and exit the game

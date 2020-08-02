@@ -71,9 +71,20 @@ class Chess
     file_name
   end
 
+  # Returns a new game where the last move is undone
+  def undo
+    return self.class.replay_moves(moves[0..-2]) if moves.length >= 1
+
+    self
+  end
+
   def self.load_game(save_file)
-    game = new
     moves = Marshal.load(File.open(save_file, 'r').read)
+    replay_moves(moves)
+  end
+
+  def self.replay_moves(moves)
+    game = new
     moves.each { |move_args| game.move(*Marshal.load(move_args)) }
     game
   end
