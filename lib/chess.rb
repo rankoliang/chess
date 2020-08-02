@@ -23,14 +23,17 @@ class Chess
   def move(chess_move, final_position)
     serialized_args = Marshal.dump([chess_move, final_position])
     piece = board.at(chess_move[:responding_piece].position)
-    original_position = piece.position
+    orig_coords = piece.coordinates
     piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     case chess_move[:type]
     when :en_passant, :capture
       chess_move[:piece].move(nil)
     when :castle
-      p piece.position
-      p chess_move[:piece]
+      rook = board.at(chess_move[:piece].position)
+      column_offset = orig_coords.column - piece.coordinates.column < 0 ? -1 : 1
+      rook.move(piece.offset_position([column_offset, 0])) do |new_position|
+        board.move_piece(new_position, rook)
+      end
     end
     update_pieces
     generate_attacking
