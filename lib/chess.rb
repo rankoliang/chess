@@ -44,22 +44,20 @@ class Chess
       piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
       en_passant.each { |pawn| pawn.en_passant = nil }
       en_passant.clear
-      unless light_weight
-        if piece.is_a?(Pieces::Pawn)
-          distance_traveled = (orig_coords.row - piece.coordinates.row).abs
-          if distance_traveled == 2
-            [[-1, 0], [1, 0]].each do |move|
-              neighbor = board.at(piece.offset_position(move))
-              if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
-                neighbor.en_passant = piece.position
-                en_passant << neighbor
-              end
-            rescue IndexError
-              next
+      if piece.is_a?(Pieces::Pawn)
+        distance_traveled = (orig_coords.row - piece.coordinates.row).abs
+        if distance_traveled == 2
+          [[-1, 0], [1, 0]].each do |move|
+            neighbor = board.at(piece.offset_position(move))
+            if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
+              neighbor.en_passant = piece.position
+              en_passant << neighbor
             end
+          rescue IndexError
+            next
           end
         end
-      end
+    end
     end
     # TODO: set en_passant to adjacent pawns if a pawn makes a double move
     # reset en passants immediately before this step.

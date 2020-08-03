@@ -31,6 +31,7 @@ class ChessClient
   def connect
     load_game
     player = :white
+    generate_filtered_moves
     loop do
       draw(player)
       selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **PROMPT_OPTIONS)
@@ -39,6 +40,7 @@ class ChessClient
         piece = prompt.select('Pick a piece to move', piece_choices(player), **PROMPT_OPTIONS)
         move, position = prompt.select('Pick a move', move_choices(piece), **PROMPT_OPTIONS)
         game.move(move, position)
+        generate_filtered_moves
       when :destination
         move, position = prompt.select('Make a move', moves_by_destination(player), **PROMPT_OPTIONS)
         # IMPROVEMENT: clean up code smell
@@ -46,8 +48,10 @@ class ChessClient
           move, position = prompt.select('Make a move', destination_move_choices(move, position), **PROMPT_OPTIONS)
         end
         game.move(move, position)
+        generate_filtered_moves
       when :undo
         self.game = game.undo
+        generate_filtered_moves
       when :player
         player = prompt.select('Choose a player', %i[white black], **PROMPT_OPTIONS)
       when :save
@@ -104,10 +108,9 @@ class ChessClient
   end
 
   def draw(player)
-    generate_filtered_moves
     print cursor.clear_screen, cursor.move_to
     game.board.draw
-    puts "Turn #{game.moves.size}, Current player: #{player.upcase}"
+    puts "Turn #{game.moves.size / 2 + 1}, Current player: #{player}"
     print_turn_info
   end
 
