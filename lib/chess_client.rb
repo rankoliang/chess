@@ -9,8 +9,8 @@ require_relative 'chess_config'
 
 # Responsible for prompting the user for input
 class ChessClient
-  MENU_SELECTIONS = [{ name: 'Pick a destination', value: :destination },
-                     { name: 'Pick a piece', value: :piece },
+  MENU_SELECTIONS = [{ name: 'Move to space', value: :destination },
+                     { name: 'Move piece', value: :piece },
                      { name: 'Undo last move', value: :undo },
                      { name: 'Save the game', value: :save },
                      { name: 'Switch player', value: :player },
@@ -39,15 +39,15 @@ class ChessClient
       selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **PROMPT_OPTIONS)
       case selection
       when :piece
-        piece = prompt.select('Pick a piece to move', piece_choices(player), **PROMPT_OPTIONS)
-        move, position = prompt.select('Pick a move', move_choices(piece), **PROMPT_OPTIONS)
+        piece = prompt.select('Pick a piece to move', piece_choices(player).shuffle, **PROMPT_OPTIONS)
+        move, position = prompt.select('Pick a move', move_choices(piece).shuffle, **PROMPT_OPTIONS)
         game.move(move, position)
         generate_filtered_moves
       when :destination
-        move, position = prompt.select('Make a move', moves_by_destination(player), **PROMPT_OPTIONS)
+        move, position = prompt.select('Make a move', moves_by_destination(player).shuffle, **PROMPT_OPTIONS)
         # IMPROVEMENT: clean up code smell
         if move.is_a? Array
-          move, position = prompt.select('Make a move', destination_move_choices(move, position), **PROMPT_OPTIONS)
+          move, position = prompt.select('Make a move', destination_move_choices(move, position).shuffle, **PROMPT_OPTIONS)
         end
         game.move(move, position)
         generate_filtered_moves
@@ -128,8 +128,12 @@ class ChessClient
   def print_turn_info
     %i[white black].each do |player|
       if filtered_moves[player].empty?
-        puts "#{player.to_s.upcase} IN CHECKMATE"
-        puts "#{CConf.opponent(player).to_s.upcase} WINS"
+        if game.check? player
+          puts "#{player.to_s.upcase} IN CHECKMATE"
+          puts "#{CConf.opponent(player).to_s.upcase} WINS"
+        else
+          puts 'STALEMATE'
+        end
         exit
       elsif game.check? player
         puts "#{player.to_s.upcase} IN CHECK"
