@@ -48,6 +48,8 @@ module Pieces
   # first move. It can take other pieces diagonally.
   class Pawn < Piece
     attr_accessor :en_passant
+    PROMOTE_ROW = { white: 7, black: 0 }.freeze
+
     def all_moves(&piece_getter)
       # Blocked if the other piece is not a friendly unit
       move_validator = MoveValidator.new(self, :PawnMove, &piece_getter)
@@ -56,6 +58,10 @@ module Pieces
                       valid_capture_moves(&piece_getter),
                       valid_en_passant_moves(&piece_getter)
                     ) { |_, *moves| moves.min { |a, b| a[:level] <=> b[:level] } }
+    end
+
+    def promotable?
+      PROMOTE_ROW[player] == coordinates.row
     end
 
     private

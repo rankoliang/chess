@@ -215,6 +215,40 @@ RSpec.describe Pieces::Pawn do
       end
     end
   end
+
+  describe '#promotable?' do
+    context 'when a white pawn is on row 8' do
+      subject(:pawn) { described_class.new(position: position, player: :white) }
+
+      let(:position) { 'a8' }
+
+      it { expect(pawn.promotable?).to be true }
+    end
+
+    context 'when a white pawn is not on row 8' do
+      subject(:pawn) { described_class.new(position: position, player: :white) }
+
+      let(:position) { 'a1' }
+
+      it { expect(pawn.promotable?).to be false }
+    end
+
+    context 'when a black pawn is on row 8' do
+      subject(:pawn) { described_class.new(position: position, player: :black) }
+
+      let(:position) { 'a1' }
+
+      it { expect(pawn.promotable?).to be true }
+    end
+
+    context 'when a black pawn is not on row 8' do
+      subject(:pawn) { described_class.new(position: position, player: :black) }
+
+      let(:position) { 'a8' }
+
+      it { expect(pawn.promotable?).to be false }
+    end
+  end
 end
 # rubocop:disable Lint/RedundantCopEnableDirective
 # rubocop:enable RSpec/NestedGroups

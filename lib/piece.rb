@@ -76,6 +76,10 @@ class Piece
     OpenStruct.new(column: column_index, row: row_index)
   end
 
+  def promotable?
+    false
+  end
+
   private
 
   attr_reader :board
