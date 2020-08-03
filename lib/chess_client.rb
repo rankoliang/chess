@@ -3,6 +3,7 @@
 require 'tty-cursor'
 require 'tty-prompt'
 require 'tty-progressbar'
+require 'yaml'
 require_relative 'chess'
 require_relative 'chess_config'
 
@@ -12,7 +13,7 @@ class ChessClient
                      { name: 'Pick a piece', value: :piece },
                      { name: 'Undo last move', value: :undo },
                      { name: 'Save the game', value: :save },
-                     { name: 'Change the player', value: :player },
+                     { name: 'Switch player', value: :player },
                      { name: 'Exit', value: :exit }].freeze
 
   MOVE_SIGNATURE = proc do |move|
@@ -21,18 +22,19 @@ class ChessClient
   end
 
   PROMPT_OPTIONS = { per_page: 6, filter: true, cycle: true }.freeze
-  attr_accessor :game, :prompt, :cursor, :filtered_moves
+  attr_accessor :game, :prompt, :cursor, :filtered_moves, :players
   def initialize
     self.prompt = TTY::Prompt.new(help_color: :red)
     self.cursor = TTY::Cursor
     self.filtered_moves = {}
+    self.players = %i[white black].cycle
   end
 
   def connect
     load_game
-    player = :white
     generate_filtered_moves
     loop do
+      player = players.next
       draw(player)
       selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **PROMPT_OPTIONS)
       case selection
@@ -53,7 +55,7 @@ class ChessClient
         self.game = game.undo
         generate_filtered_moves
       when :player
-        player = prompt.select('Choose a player', %i[white black], **PROMPT_OPTIONS)
+        player = player.next
       when :save
         save_game
       when :exit
@@ -115,7 +117,9 @@ class ChessClient
   end
 
   def generate_filtered_moves
-    bar = TTY::ProgressBar.new("[:bar]", total: game.destinations_move_select.sum { |_,moves| moves.size })
+    bar = TTY::ProgressBar.new(
+      '[:bar]', total: game.destinations_move_select.sum { |_, moves| moves.size }
+    )
     %i[white black].each do |player|
       filtered_moves[player] = check_filtered_moves(player, bar)
     end
@@ -125,6 +129,8 @@ class ChessClient
     %i[white black].each do |player|
       if filtered_moves[player].empty?
         puts "#{player.to_s.upcase} IN CHECKMATE"
+        puts "#{CConf.opponent(player).to_s.upcase} WINS"
+        exit
       elsif game.check? player
         puts "#{player.to_s.upcase} IN CHECK"
       end
@@ -138,7 +144,7 @@ class ChessClient
                       .gsub(/ /, '_') + '.chsav'
     Dir.mkdir CConf::SAVE_DIR unless Dir.exist? CConf::SAVE_DIR
     File.open(File.join(CConf::SAVE_DIR, file_name), 'w') do |file|
-      file.puts game.serialize_moves
+      file.puts serialized_game_state
     end
     puts "Game saved to #{file_name}"
     file_name
@@ -146,7 +152,11 @@ class ChessClient
 
   def load_save
     save_file = prompt.select('Choose a save file', Dir["#{CConf::SAVE_DIR}/*"], **PROMPT_OPTIONS)
-    self.game = Chess.load_game(Marshal.load(File.open(save_file, 'r').read))
+    game_state = self.class.deserialize_game_state(File.open(save_file, 'r'))
+    # Switch player if the saved game had a different active player
+    # (players will switch back when the game starts)
+    players.next if game_state[:active] == active_player
+    self.game = Chess.load_game(Marshal.load(game_state[:moves]))
   end
 
   def load_game
@@ -160,6 +170,19 @@ class ChessClient
                 when 'Exit'
                   exit
                 end
+  end
+  
+  def serialized_game_state
+    YAML.dump({ moves: game.serialize_moves, active: active_player })
+  end
+
+  def self.deserialize_game_state(game_state)
+    YAML.load(game_state)
+  end
+
+  def active_player
+    players.next
+    players.next
   end
 
   # returns a single selection for a given move
