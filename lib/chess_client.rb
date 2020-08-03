@@ -19,6 +19,7 @@ class ChessClient
     " by #{responding_piece} #{responding_piece.position}"
   end
 
+  PROMPT_OPTIONS = { per_page: 6, filter: true, cycle: true }.freeze
   attr_accessor :game, :prompt, :cursor, :filtered_moves
   def initialize
     self.prompt = TTY::Prompt.new(help_color: :red)
@@ -27,28 +28,29 @@ class ChessClient
   end
 
   def connect
-    prompt_options = { per_page: 5, filter: true }
     load_game
     player = :white
     loop do
       draw(player)
-      selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **prompt_options)
+      selection = prompt.select('What would you like to do?', MENU_SELECTIONS, **PROMPT_OPTIONS)
       case selection
       when :piece
-        piece = prompt.select('Pick a piece to move', piece_choices(player), **prompt_options)
-        move, position = prompt.select('Pick a move', move_choices(piece), **prompt_options)
+        piece = prompt.select('Pick a piece to move', piece_choices(player), **PROMPT_OPTIONS)
+        move, position = prompt.select('Pick a move', move_choices(piece), **PROMPT_OPTIONS)
         game.move(move, position)
       when :destination
-        move, position = prompt.select('Make a move', moves_by_destination(player), **prompt_options)
+        p filtered_moves[player].count
+        p filtered_moves[CConf.opponent(player)].count
+        move, position = prompt.select('Make a move', moves_by_destination(player), **PROMPT_OPTIONS)
         # IMPROVEMENT: clean up code smell
         if move.is_a? Array
-          move, position = prompt.select('Pick a move', destination_move_choices(move, position), **prompt_options)
+          move, position = prompt.select('Make a move', destination_move_choices(move, position), **PROMPT_OPTIONS)
         end
         game.move(move, position)
       when :undo
         self.game = game.undo
       when :player
-        player = prompt.select('Choose a player', %i[white black])
+        player = prompt.select('Choose a player', %i[white black], **PROMPT_OPTIONS)
       when :save
         save_game
       when :exit
@@ -89,7 +91,7 @@ class ChessClient
       move[:level] == 0 && move[:responding_piece].player == player
     end.map do |position, moves|
       moves = moves.reject do |move|
-        dummy_game = Chess.replay_moves(game.moves) 
+        dummy_game = Chess.load_game(game.moves)
         dummy_game.move(move, position)
         dummy_game.check?(player)
       end
@@ -105,10 +107,20 @@ class ChessClient
 
   def draw(player)
     print cursor.clear_screen, cursor.move_to
+    generate_filtered_moves
     game.board.draw
     puts "Turn #{game.moves.size}, Current player: #{player.upcase}"
-    [:white, :black].each do |player|
-      self.filtered_moves[player] = check_filtered_moves(player)
+    print_turn_info
+  end
+
+  def generate_filtered_moves
+    %i[white black].each do |player|
+      filtered_moves[player] = check_filtered_moves(player)
+    end
+  end
+
+  def print_turn_info
+    %i[white black].each do |player|
       if filtered_moves[player].empty?
         puts "#{player.to_s.upcase} IN CHECKMATE"
       elsif game.check? player
@@ -120,19 +132,24 @@ class ChessClient
 
   def save_game
     default_save_name = DateTime.now.strftime('%Y%m%d%_H%M%S')
-    file_name = prompt.ask('Name your save:', default: default_save_name).gsub(/ /, '_') + '.chsav'
-    game.save_game(file_name)
-    # TODO: call the save game method and exit the game
+    file_name = prompt.ask('Name your save:', default: default_save_name, **PROMPT_OPTIONS)
+                      .gsub(/ /, '_') + '.chsav'
+    Dir.mkdir CConf::SAVE_DIR unless Dir.exist? CConf::SAVE_DIR
+    File.open(File.join(CConf::SAVE_DIR, file_name), 'w') do |file|
+      file.puts game.serialize_moves
+    end
+    puts "Game saved to #{file_name}"
+    file_name
   end
 
   def load_save
-    save_file = prompt.select('Choose a save file', Dir['saves/*'])
-    self.game = Chess.load_game(save_file)
+    save_file = prompt.select('Choose a save file', Dir["#{CConf::SAVE_DIR}/*"], **PROMPT_OPTIONS)
+    self.game = Chess.load_game(Marshal.load(File.open(save_file, 'r').read))
   end
 
   def load_game
     print cursor.clear_screen, cursor.move_to
-    game_type = prompt.select('Pick an option', ['New game', 'Load game', 'Exit'])
+    game_type = prompt.select('Pick an option', ['New game', 'Load game', 'Exit'], **PROMPT_OPTIONS)
     self.game = case game_type
                 when 'New game'
                   Chess.new

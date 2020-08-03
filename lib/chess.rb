@@ -71,13 +71,8 @@ class Chess
     piece.valid_moves { |position| board.at(position) }
   end
 
-  def save_game(file_name, save_dir = CConf::SAVE_DIR)
-    Dir.mkdir save_dir unless Dir.exist? save_dir
-    File.open(File.join(save_dir, file_name), 'w') do |file|
-      file.puts Marshal.dump(moves)
-    end
-    puts "Game saved to #{file_name}"
-    file_name
+  def serialize_moves
+    Marshal.dump(moves)
   end
 
   # Returns a new game where the last move is undone
@@ -87,16 +82,10 @@ class Chess
     self
   end
 
-  def self.load_game(save_file)
-    moves = Marshal.load(File.open(save_file, 'r').read)
-    game = replay_moves(moves)
-    game.light_weight = true
-    game
-  end
-
-  def self.replay_moves(moves)
+  def self.load_game(moves)
     game = new(light_weight: true)
     moves.each { |move_args| game.move(*Marshal.load(move_args)) }
+    game.light_weight = true
     game
   end
 
