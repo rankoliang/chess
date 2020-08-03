@@ -39,8 +39,6 @@ class ChessClient
         move, position = prompt.select('Pick a move', move_choices(piece), **PROMPT_OPTIONS)
         game.move(move, position)
       when :destination
-        p filtered_moves[player].count
-        p filtered_moves[CConf.opponent(player)].count
         move, position = prompt.select('Make a move', moves_by_destination(player), **PROMPT_OPTIONS)
         # IMPROVEMENT: clean up code smell
         if move.is_a? Array
