@@ -79,7 +79,7 @@ class Board
 
   # method moves a piece to a new space. The piece position is not updated
   def move_piece(to, piece)
-    from = piece.position
+    from = piece&.position
     yield at(to) if block_given?
     set(to, piece)
     set(from, nil) if from

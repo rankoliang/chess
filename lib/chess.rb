@@ -9,7 +9,7 @@ require_relative 'chess_config'
 # Handles high level game objects
 class Chess
   attr_reader :board, :pieces, :players, :kings, :moves, :destinations
-  attr_accessor :light_weight
+  attr_accessor :light_weight, :en_passant
   def initialize(light_weight: false)
     generate_pieces
     self.kings = pieces.filter_map { |_, piece| piece if piece.class == Pieces::King }
@@ -19,6 +19,7 @@ class Chess
     self.board = ChessBoard.new(pieces)
     self.moves = []
     self.light_weight = light_weight
+    self.en_passant = []
     generate_destinations unless light_weight
   end
 
@@ -28,8 +29,9 @@ class Chess
     orig_coords = piece.coordinates
     case chess_move[:type]
     when :en_passant, :capture
+      captured_position = chess_move[:piece].position
       captured_piece = board.at(chess_move[:piece].position)
-      captured_piece.move(nil)
+      captured_piece.move(nil) { board.move_piece(captured_position, nil) }
       piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     when :castle
       piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
@@ -40,6 +42,24 @@ class Chess
       end
     else
       piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
+      en_passant.each { |pawn| pawn.en_passant = nil }
+      en_passant.clear
+      unless light_weight
+        if piece.is_a?(Pieces::Pawn)
+          distance_traveled = (orig_coords.row - piece.coordinates.row).abs
+          if distance_traveled == 2
+            [[-1, 0], [1, 0]].each do |move|
+              neighbor = board.at(piece.offset_position(move))
+              if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
+                neighbor.en_passant = piece.position
+                en_passant << neighbor
+              end
+            rescue IndexError
+              next
+            end
+          end
+        end
+      end
     end
     # TODO: set en_passant to adjacent pawns if a pawn makes a double move
     # reset en passants immediately before this step.
@@ -77,7 +97,7 @@ class Chess
 
   # Returns a new game where the last move is undone
   def undo
-    return self.class.replay_moves(moves[0..-2]) if moves.length >= 1
+    return self.class.load_game(moves[0..-2]) if moves.length >= 1
 
     self
   end
@@ -85,12 +105,12 @@ class Chess
   def self.load_game(moves)
     game = new(light_weight: true)
     moves.each { |move_args| game.move(*Marshal.load(move_args)) }
-    game.light_weight = true
+    game.light_weight = false
     game
   end
 
   def destinations_move_select(&move_filter)
-    generate_destinations if light_weight
+    generate_destinations if light_weight || !destinations
     return destinations unless block_given?
 
     destinations.map do |player, dest|
