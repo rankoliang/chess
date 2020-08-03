@@ -29,24 +29,14 @@ class Chess
     orig_coords = piece.coordinates
     case chess_move[:type]
     when :en_passant, :capture
-      captured_position = chess_move[:piece].position
-      captured_piece = board.at(chess_move[:piece].position)
-      captured_piece.move(nil) { board.move_piece(captured_position, nil) }
-      piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
+      update_board_capture(chess_move, final_position, piece)
     when :castle
-      piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
-      rook = board.at(chess_move[:piece].position)
-      column_offset = orig_coords.column - piece.coordinates.column < 0 ? -1 : 1
-      rook.move(piece.offset_position([column_offset, 0])) do |new_position|
-        board.move_piece(new_position, rook)
-      end
+      update_board_castle(chess_move, final_position, piece, orig_coords)
     else
       piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
       update_en_passant(orig_coords, piece)
     end
-    promote_pawn(piece)
-    # TODO: set en_passant to adjacent pawns if a pawn makes a double move
-    # reset en passants immediately before this step.
+    promote(piece) if piece.promotable?
     update_pieces
     generate_destinations unless light_weight
     moves << serialized_args
@@ -142,9 +132,7 @@ class Chess
     end.compact.to_h
   end
 
-  def promote_pawn(piece)
-    return unless piece.promotable?
-
+  def promote(piece)
     position = piece.position
     pieces[position] = Pieces::Queen.new(position: position, player: piece.player)
     board.set(position, pieces[position])
@@ -154,19 +142,36 @@ class Chess
     # really smelly
     en_passant.each { |pawn| pawn.en_passant = nil }
     en_passant.clear
-    if piece.is_a?(Pieces::Pawn)
-      distance_traveled = (orig_coords.row - piece.coordinates.row).abs
-      if distance_traveled == 2
-        [[-1, 0], [1, 0]].each do |move|
-          neighbor = board.at(piece.offset_position(move))
-          if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
-            neighbor.en_passant = piece.position
-            en_passant << neighbor
-          end
-        rescue IndexError
-          next
-        end
+    return unless piece.is_a?(Pieces::Pawn)
+
+    distance_traveled = (orig_coords.row - piece.coordinates.row).abs
+    return unless distance_traveled == 2
+
+    [[-1, 0], [1, 0]].each do |move|
+      neighbor = board.at(piece.offset_position(move))
+      # could move this into the pawn class
+      if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
+        neighbor.en_passant = piece.position
+        en_passant << neighbor
       end
+    rescue IndexError
+      next
+    end
+  end
+
+  def update_board_capture(chess_move, piece_final_position, piece)
+    captured_position = chess_move[:piece].position
+    captured_piece = board.at(chess_move[:piece].position)
+    captured_piece.move(nil) { board.set(captured_position, nil) }
+    piece.move(piece_final_position) { |new_position| board.move_piece(new_position, piece) }
+  end
+
+  def update_board_castle(chess_move, piece_final_position, piece, orig_coords)
+    piece.move(piece_final_position) { |new_position| board.move_piece(new_position, piece) }
+    rook = board.at(chess_move[:piece].position)
+    column_offset = orig_coords.column - piece.coordinates.column < 0 ? -1 : 1
+    rook.move(piece.offset_position([column_offset, 0])) do |new_position|
+      board.move_piece(new_position, rook)
     end
   end
 end
