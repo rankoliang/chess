@@ -42,23 +42,9 @@ class Chess
       end
     else
       piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
-      en_passant.each { |pawn| pawn.en_passant = nil }
-      en_passant.clear
-      if piece.is_a?(Pieces::Pawn)
-        distance_traveled = (orig_coords.row - piece.coordinates.row).abs
-        if distance_traveled == 2
-          [[-1, 0], [1, 0]].each do |move|
-            neighbor = board.at(piece.offset_position(move))
-            if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
-              neighbor.en_passant = piece.position
-              en_passant << neighbor
-            end
-          rescue IndexError
-            next
-          end
-        end
+      update_en_passant(orig_coords, piece)
     end
-    end
+    promote_pawn(piece)
     # TODO: set en_passant to adjacent pawns if a pawn makes a double move
     # reset en passants immediately before this step.
     update_pieces
@@ -74,11 +60,13 @@ class Chess
     kings.map { |king| [king.player, king.position] }.to_h
   end
 
+  # returns if the side of color is in check or now
   def check?(color)
+    # moves that can capture by the opponent
     dangerous_moves = destinations_move_select do |move|
       move[:capturable]
-    end
-    !!dangerous_moves[CConf.opponent(color)][king_locations[color]]
+    end[CConf.opponent(color)]
+    !!dangerous_moves && !!dangerous_moves[king_locations[color]]
   end
 
   def show
@@ -152,5 +140,33 @@ class Chess
     self.pieces = pieces.values.map do |piece|
       [piece.position, piece] if piece.position
     end.compact.to_h
+  end
+
+  def promote_pawn(piece)
+    return unless piece.promotable?
+
+    position = piece.position
+    pieces[position] = Pieces::Queen.new(position: position, player: piece.player)
+    board.set(position, pieces[position])
+  end
+
+  def update_en_passant(orig_coords, piece)
+    # really smelly
+    en_passant.each { |pawn| pawn.en_passant = nil }
+    en_passant.clear
+    if piece.is_a?(Pieces::Pawn)
+      distance_traveled = (orig_coords.row - piece.coordinates.row).abs
+      if distance_traveled == 2
+        [[-1, 0], [1, 0]].each do |move|
+          neighbor = board.at(piece.offset_position(move))
+          if neighbor.is_a?(Pieces::Pawn) && neighbor.enemy?(piece)
+            neighbor.en_passant = piece.position
+            en_passant << neighbor
+          end
+        rescue IndexError
+          next
+        end
+      end
+    end
   end
 end
