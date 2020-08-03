@@ -2,6 +2,7 @@
 
 require 'tty-cursor'
 require 'tty-prompt'
+require 'tty-progressbar'
 require_relative 'chess'
 require_relative 'chess_config'
 
@@ -39,8 +40,6 @@ class ChessClient
         move, position = prompt.select('Pick a move', move_choices(piece), **PROMPT_OPTIONS)
         game.move(move, position)
       when :destination
-        p filtered_moves[player].count
-        p filtered_moves[CConf.opponent(player)].count
         move, position = prompt.select('Make a move', moves_by_destination(player), **PROMPT_OPTIONS)
         # IMPROVEMENT: clean up code smell
         if move.is_a? Array
@@ -86,11 +85,12 @@ class ChessClient
     end
   end
 
-  def check_filtered_moves(player)
+  def check_filtered_moves(player, bar)
     game.destinations_move_select[player].map do |position, moves|
       moves = moves.reject do |move|
         dummy_game = Chess.load_game(game.moves)
         dummy_game.move(move, position)
+        bar.advance(1)
         dummy_game.check?(player)
       end
       [position, moves] if !moves.empty?
@@ -112,8 +112,9 @@ class ChessClient
   end
 
   def generate_filtered_moves
+    bar = TTY::ProgressBar.new("[:bar]", total: game.destinations_move_select.sum { |_,moves| moves.size })
     %i[white black].each do |player|
-      filtered_moves[player] = check_filtered_moves(player)
+      filtered_moves[player] = check_filtered_moves(player, bar)
     end
   end
 
