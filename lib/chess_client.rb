@@ -19,10 +19,11 @@ class ChessClient
     " by #{responding_piece} #{responding_piece.position}"
   end
 
-  attr_accessor :game, :prompt, :cursor
+  attr_accessor :game, :prompt, :cursor, :filtered_moves
   def initialize
     self.prompt = TTY::Prompt.new(help_color: :red)
     self.cursor = TTY::Cursor
+    self.filtered_moves = {}
   end
 
   def connect
@@ -71,8 +72,7 @@ class ChessClient
   end
 
   def moves_by_destination(player)
-    # p check_filtered_moves(player)
-    check_filtered_moves(player).map do |position, moves|
+    filtered_moves[player].map do |position, moves|
       if moves.size == 1
         move_selection(moves.first, position, &MOVE_SIGNATURE)
       else
@@ -108,8 +108,8 @@ class ChessClient
     game.board.draw
     puts "Turn #{game.moves.size}, Current player: #{player.upcase}"
     [:white, :black].each do |player|
-      filtered_moves = check_filtered_moves(player)
-      if filtered_moves.empty?
+      self.filtered_moves[player] = check_filtered_moves(player)
+      if filtered_moves[player].empty?
         puts "#{player.to_s.upcase} IN CHECKMATE"
       elsif game.check? player
         puts "#{player.to_s.upcase} IN CHECK"

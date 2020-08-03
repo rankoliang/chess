@@ -9,7 +9,8 @@ require_relative 'chess_config'
 # Handles high level game objects
 class Chess
   attr_reader :board, :pieces, :players, :kings, :moves, :destinations
-  def initialize
+  attr_accessor :light_weight
+  def initialize(light_weight: false)
     generate_pieces
     self.kings = pieces.filter_map { |_, piece| piece if piece.class == Pieces::King }
     self.players = %i[white black].map do |player_color|
@@ -17,7 +18,8 @@ class Chess
     end
     self.board = ChessBoard.new(pieces)
     self.moves = []
-    generate_destinations
+    self.light_weight = light_weight
+    generate_destinations unless light_weight
   end
 
   def move(chess_move, final_position)
@@ -28,18 +30,21 @@ class Chess
     when :en_passant, :capture
       captured_piece = board.at(chess_move[:piece].position)
       captured_piece.move(nil)
+      piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     when :castle
+      piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
       rook = board.at(chess_move[:piece].position)
       column_offset = orig_coords.column - piece.coordinates.column < 0 ? -1 : 1
       rook.move(piece.offset_position([column_offset, 0])) do |new_position|
         board.move_piece(new_position, rook)
       end
+    else
+      piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     end
-    piece.move(final_position) { |new_position| board.move_piece(new_position, piece) }
     # TODO: set en_passant to adjacent pawns if a pawn makes a double move
     # reset en passants immediately before this step.
     update_pieces
-    generate_destinations
+    generate_destinations unless light_weight
     moves << serialized_args
   end
 
@@ -84,16 +89,19 @@ class Chess
 
   def self.load_game(save_file)
     moves = Marshal.load(File.open(save_file, 'r').read)
-    replay_moves(moves)
+    game = replay_moves(moves)
+    game.light_weight = true
+    game
   end
 
   def self.replay_moves(moves)
-    game = new
+    game = new(light_weight: true)
     moves.each { |move_args| game.move(*Marshal.load(move_args)) }
     game
   end
 
   def destinations_move_select(&move_filter)
+    generate_destinations if light_weight
     destinations.map do |position, moves|
       moves_by_opponent = moves.select(&move_filter)
       [position, moves_by_opponent.empty? ? nil : moves_by_opponent]
