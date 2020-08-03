@@ -58,9 +58,9 @@ class Chess
 
   def check?(color)
     dangerous_moves = destinations_move_select do |move|
-      move[:responding_piece] != color && move[:level] == 0 && move[:capturable]
+      move[:capturable]
     end
-    !!dangerous_moves[king_locations[color]]
+    !!dangerous_moves[CConf.opponent(color)][king_locations[color]]
   end
 
   def show
@@ -91,10 +91,14 @@ class Chess
 
   def destinations_move_select(&move_filter)
     generate_destinations if light_weight
-    destinations.map do |position, moves|
-      moves_by_opponent = moves.select(&move_filter)
-      [position, moves_by_opponent.empty? ? nil : moves_by_opponent]
-    end.to_h.compact
+    return destinations unless block_given?
+
+    destinations.map do |player, dest|
+      [player, dest.map do |position, moves|
+        moves_by_opponent = moves.select(&move_filter)
+        [position, moves_by_opponent.empty? ? nil : moves_by_opponent]
+      end.to_h.compact]
+    end.to_h
   end
 
   private
@@ -104,12 +108,16 @@ class Chess
   # generates a hash where the key is a position and the value are the
   # moves that can act at that position
   def generate_destinations
-    destinations_hash = Hash.new { |destinations, position| destinations[position] = [] }
+    destinations_hash = Hash.new do |dest, player|
+      dest[player] = Hash.new do |moves, position|
+        moves[position] = []
+      end
+    end
     self.destinations = pieces.values.each_with_object(destinations_hash) do |piece, destinations|
       next unless piece.position
 
       piece.all_moves { |position| board.at(position) }.each do |position, move|
-        destinations[position] << move
+        destinations[move[:responding_piece].player][position] << move if move[:level].zero?
       end
     end
   end

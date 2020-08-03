@@ -87,9 +87,7 @@ class ChessClient
   end
 
   def check_filtered_moves(player)
-    game.destinations_move_select do |move|
-      move[:level] == 0 && move[:responding_piece].player == player
-    end.map do |position, moves|
+    game.destinations_move_select[player].map do |position, moves|
       moves = moves.reject do |move|
         dummy_game = Chess.load_game(game.moves)
         dummy_game.move(move, position)
@@ -106,8 +104,8 @@ class ChessClient
   end
 
   def draw(player)
-    print cursor.clear_screen, cursor.move_to
     generate_filtered_moves
+    print cursor.clear_screen, cursor.move_to
     game.board.draw
     puts "Turn #{game.moves.size}, Current player: #{player.upcase}"
     print_turn_info
