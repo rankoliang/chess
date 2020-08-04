@@ -2,7 +2,6 @@
 
 require 'tty-cursor'
 require 'tty-prompt'
-require 'tty-progressbar'
 require 'tty-spinner'
 require 'yaml'
 require_relative 'chess'
