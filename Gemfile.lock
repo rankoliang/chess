@@ -23,14 +23,8 @@ GEM
       docile (~> 1.1)
       simplecov-html (~> 0.11)
     simplecov-html (0.12.2)
-    strings-ansi (0.1.0)
     tty-color (0.5.1)
     tty-cursor (0.7.1)
-    tty-progressbar (0.17.0)
-      strings-ansi (~> 0.1.0)
-      tty-cursor (~> 0.7)
-      tty-screen (~> 0.7)
-      unicode-display_width (~> 1.6)
     tty-prompt (0.22.0)
       pastel (~> 0.8)
       tty-reader (~> 0.8)
@@ -39,7 +33,8 @@ GEM
       tty-screen (~> 0.8)
       wisper (~> 2.0)
     tty-screen (0.8.1)
-    unicode-display_width (1.7.0)
+    tty-spinner (0.9.3)
+      tty-cursor (~> 0.7)
     wisper (2.0.1)
 
 PLATFORMS
@@ -50,8 +45,8 @@ DEPENDENCIES
   rspec
   simplecov
   tty-cursor
-  tty-progressbar
   tty-prompt
+  tty-spinner
 
 BUNDLED WITH
    2.1.4

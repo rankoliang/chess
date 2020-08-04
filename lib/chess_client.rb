@@ -3,6 +3,7 @@
 require 'tty-cursor'
 require 'tty-prompt'
 require 'tty-progressbar'
+require 'tty-spinner'
 require 'yaml'
 require_relative 'chess'
 require_relative 'chess_config'
@@ -22,6 +23,10 @@ class ChessClient
   end
 
   PROMPT_OPTIONS = { per_page: 6, filter: true, cycle: true }.freeze
+
+  PIECE_ICONS = CConf::PIECE_SYMBOLS.reject { |key| key == :default }
+                                    .values.flat_map(&:values)
+
   attr_accessor :game, :prompt, :cursor, :filtered_moves, :players
   def initialize
     self.prompt = TTY::Prompt.new(help_color: :red, interrupt: :exit)
@@ -100,10 +105,10 @@ class ChessClient
   # given a player, all legal moves that the player could make are
   # checked. Whenever a move would put the player in check it is
   # filtered out of the available options
-  def check_filtered_moves(player, progress_bar)
+  def check_filtered_moves(player, spinner)
     game.destinations_move_select[player].map do |position, moves|
       moves = moves.reject do |move|
-        progress_bar.advance(1)
+        spinner.spin
         phantom_game = Chess.load_game(game.moves)
         phantom_game.move(move, position)
         phantom_game.check?(player) || (castle_check(move, player) if move[:type] == :castle)
@@ -143,13 +148,21 @@ class ChessClient
   end
 
   def generate_filtered_moves
-    bar = TTY::ProgressBar.new(
-      '[:bar]', total: game.destinations_move_select.sum { |_, moves| moves.size }
-    )
+    spinner = TTY::Spinner.new(frames: repeat_frames(PIECE_ICONS, 15))
     %i[white black].each do |player|
-      filtered_moves[player] = check_filtered_moves(player, bar)
+      filtered_moves[player] = check_filtered_moves(player, spinner)
     end
+    spinner.success
   end
+  
+  def repeat_frames(arr, repeats = 2)
+    result = arr
+    (repeats - 1).times do
+      result = result.zip(arr)
+    end
+    result.shuffle.flatten
+  end
+
 
   def print_turn_info
     %i[white black].each do |player|

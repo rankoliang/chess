@@ -4,4 +4,4 @@ gem 'rspec', group: :development
 gem 'simplecov', group: :development
 gem 'tty-cursor'
 gem 'tty-prompt'
-gem 'tty-progressbar'
+gem 'tty-spinner'
