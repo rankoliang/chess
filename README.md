@@ -18,9 +18,9 @@ gem install bundler
 
 ### Installing
 
-Clone this repository with
+Clone this repository and change your current working directory with
 ```bash
-git clone git@github.com:rankoliang/chess.git
+git clone git@github.com:rankoliang/chess.git; cd chess
 ```
 Next, install the dependencies by running
 ```bash
