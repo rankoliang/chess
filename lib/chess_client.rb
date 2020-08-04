@@ -91,16 +91,33 @@ class ChessClient
     end
   end
 
-  def check_filtered_moves(player, bar)
+  def check_filtered_moves(player, progress_bar)
     game.destinations_move_select[player].map do |position, moves|
       moves = moves.reject do |move|
-        dummy_game = Chess.load_game(game.moves)
-        dummy_game.move(move, position)
-        bar.advance(1)
-        dummy_game.check?(player)
+        progress_bar.advance(1)
+        phantom_game = Chess.load_game(game.moves)
+        phantom_game.move(move, position)
+        phantom_game.check?(player) || castle_check(move, player) if move[:type] == :castle
       end
-      [position, moves] if !moves.empty?
+      [position, moves] unless moves.empty?
     end.compact.to_h
+  end
+
+  # checks if the king's position or the positions the king passes through
+  # while performing a castle will put it in check
+  def castle_check(move, player)
+    king = move[:responding_piece]
+    rook = move[:piece]
+    columns = rook.coordinates.column - king.coordinates.column
+    # generates the offsets between the rook and the king
+    [columns + 2, 0].min.upto([columns - 2, 0].max).any? do |column_offset|
+      offset = [column_offset, 0]
+      phantom_move = {type: :free, responding_piece: king, level: 0}
+      phantom_king_position = king.offset_position(offset)
+      phantom_game = Chess.load_game(game.moves)
+      phantom_game.move(phantom_move, phantom_king_position)
+      phantom_game.check?(player)
+    end 
   end
 
   def destination_move_choices(moves, position)
@@ -157,9 +174,7 @@ class ChessClient
   def load_save
     save_file = prompt.select('Choose a save file', Dir["#{CConf::SAVE_DIR}/*"], **PROMPT_OPTIONS)
     game_state = self.class.deserialize_game_state(File.open(save_file, 'r'))
-    # Switch player if the saved game had a different active player
-    # (players will switch back when the game starts)
-    players.next if game_state[:active] == active_player
+    players.next if game_state[:active] != active_player
     self.game = Chess.load_game(Marshal.load(game_state[:moves]))
   end
 
