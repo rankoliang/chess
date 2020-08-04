@@ -30,6 +30,7 @@ class ChessClient
     self.players = %i[white black].cycle
   end
 
+  # connect to run main game loop
   def connect
     load_game
     generate_filtered_moves
@@ -54,14 +55,17 @@ class ChessClient
       when :undo
         self.game = game.undo
         generate_filtered_moves
-      when :player
-        player = player.next
       when :save
         save_game
+        players.next
       when :exit
         exit
       end
     end
+  end
+
+  def self.deserialize_game_state(game_state)
+    YAML.load(game_state)
   end
 
   private
@@ -84,20 +88,25 @@ class ChessClient
         move_selection(moves.first, position, &MOVE_SIGNATURE)
       else
         move_types = moves.map do |move|
-          "#{move[:responding_piece]} #{move[:responding_piece].position}#{' ' + move[:type].to_s if move[:type] != :free}"
+          "#{move[:responding_piece]} #{move[:responding_piece].position}#{if move[:type] != :free
+                                                                             ' ' + move[:type].to_s
+                                                                           end}"
         end
         { name: "#{position} by #{move_types.join(', ')}", value: [moves, position] }
       end
     end
   end
 
+  # given a player, all legal moves that the player could make are
+  # checked. Whenever a move would put the player in check it is
+  # filtered out of the available options
   def check_filtered_moves(player, progress_bar)
     game.destinations_move_select[player].map do |position, moves|
       moves = moves.reject do |move|
         progress_bar.advance(1)
         phantom_game = Chess.load_game(game.moves)
         phantom_game.move(move, position)
-        phantom_game.check?(player) || castle_check(move, player) if move[:type] == :castle
+        phantom_game.check?(player) || (castle_check(move, player) if move[:type] == :castle)
       end
       [position, moves] unless moves.empty?
     end.compact.to_h
@@ -112,12 +121,12 @@ class ChessClient
     # generates the offsets between the rook and the king
     [columns + 2, 0].min.upto([columns - 2, 0].max).any? do |column_offset|
       offset = [column_offset, 0]
-      phantom_move = {type: :free, responding_piece: king, level: 0}
+      phantom_move = { type: :free, responding_piece: king, level: 0 }
       phantom_king_position = king.offset_position(offset)
       phantom_game = Chess.load_game(game.moves)
       phantom_game.move(phantom_move, phantom_king_position)
       phantom_game.check?(player)
-    end 
+    end
   end
 
   def destination_move_choices(moves, position)
@@ -172,9 +181,18 @@ class ChessClient
   end
 
   def load_save
+    Dir.mkdir CConf::SAVE_DIR unless Dir.exist? CConf::SAVE_DIR
+    return load_game if Dir.empty? CConf::SAVE_DIR
+
     save_file = prompt.select('Choose a save file', Dir["#{CConf::SAVE_DIR}/*"], **PROMPT_OPTIONS)
+    game_state_set(save_file)
+  end
+
+  def game_state_set(save_file)
     game_state = self.class.deserialize_game_state(File.open(save_file, 'r'))
-    players.next if game_state[:active] != active_player
+    # players will go through one iteration before any moves are performed
+    # so that active player will match the save's player
+    players.next if game_state[:active] == active_player
     self.game = Chess.load_game(Marshal.load(game_state[:moves]))
   end
 
@@ -190,13 +208,9 @@ class ChessClient
                   exit
                 end
   end
-  
+
   def serialized_game_state
     YAML.dump({ moves: game.serialize_moves, active: active_player })
-  end
-
-  def self.deserialize_game_state(game_state)
-    YAML.load(game_state)
   end
 
   def active_player

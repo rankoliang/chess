@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# Checks if a piece blocks another piece
+# Checks if a piece blocks another piece. Used by move validator to properly
+# classify every move. Moves could be refactored into an ostruct or a
+# class of its own to improve this.
 module BlockingStrategy
   # Blocked by friendly units and after a capture
   class Standard
