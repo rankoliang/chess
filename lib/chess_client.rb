@@ -24,7 +24,7 @@ class ChessClient
   PROMPT_OPTIONS = { per_page: 6, filter: true, cycle: true }.freeze
   attr_accessor :game, :prompt, :cursor, :filtered_moves, :players
   def initialize
-    self.prompt = TTY::Prompt.new(help_color: :red)
+    self.prompt = TTY::Prompt.new(help_color: :red, interrupt: :exit)
     self.cursor = TTY::Cursor
     self.filtered_moves = {}
     self.players = %i[white black].cycle
