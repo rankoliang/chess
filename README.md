@@ -7,7 +7,7 @@ Command line application for playing chess implemented in ruby.
 ## Getting Started
 
 ### Prerequisites
-In order to run this project, you need to have ruby installed. I recommend using [rbenv](https://github.com/rbenv/rbenv).
+In order to run this project, you need to have ruby installed. I recommend using [rbenv](https://github.com/rbenv/rbenv) along with the [ruby-build](https://github.com/rbenv/ruby-build) plugin.
 
 This project has only been tested on ruby version 2.7.1p83.
 
@@ -51,6 +51,9 @@ bundle exec rspec
 
 ## Notes
 There is no AI, but the moves are shuffled in a semi random order. You can keep on pressing enter to execute random moves.
+
+## Thanks
+This project was part of the curriculum of [The Odin Project](https://www.theodinproject.com/courses/ruby-programming/lessons/ruby-final-project). I would like to extend a thank you to the wonderful community behind it.
 
 ## License
 This project is licensed under the MIT License.
