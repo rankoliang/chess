@@ -25,8 +25,6 @@ module BlockingStrategy
         capturable: capturable, movable: movable, responding_piece: main }
     end
 
-    private
-
     attr_accessor :capture, :blocking_level, :piece,
                   :move_type, :capturable, :movable,
                   :piece_get

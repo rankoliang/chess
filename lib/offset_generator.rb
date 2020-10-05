@@ -21,8 +21,6 @@ class OffsetGenerator
     generate_moves.to_a
   end
 
-  private
-
   attr_accessor :coordinates, :steps, :offset, :directions
 
   def step_directions

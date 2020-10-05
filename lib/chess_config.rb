@@ -8,7 +8,7 @@ module ChessConfig
   SAVE_DIR = 'saves'
   BOARD_WIDTH = 8
   BOARD_HEIGHT = 8
-  TRUE_COLORS = true
+  TRUE_COLORS = false
   Paint.mode = 256 unless TRUE_COLORS
   # rubocop:disable Style/StringLiterals
   BACKGROUND_DARK = Hash.new(:black).update(0xFFFFFF => "black")[Paint.mode]

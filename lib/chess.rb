@@ -12,7 +12,7 @@ class Chess
   attr_accessor :light_weight, :en_passant
   def initialize(light_weight: false)
     generate_pieces
-    self.kings = pieces.filter_map { |_, piece| piece if piece.class == Pieces::King }
+    self.kings = pieces.map { |_, piece| piece if piece.class == Pieces::King }.compact
     self.players = %i[white black].map do |player_color|
       Player.new(player_color)
     end
