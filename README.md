@@ -1,15 +1,18 @@
+
 # Chess
 
 Command line application for playing chess implemented in ruby.
 
 ![Chess gameplay demo](images/chess_demo.gif)
 
+[![Run on Repl.it](https://repl.it/badge/github/rankoliang/chess)](https://chess.rankoliang.repl.run)
+
 ## Getting Started
 
 ### Prerequisites
-In order to run this project, you need to have ruby installed. I recommend using [rbenv](https://github.com/rbenv/rbenv) along with the [ruby-build](https://github.com/rbenv/ruby-build) plugin.
+In order to run this project, you need to have ruby installed. I recommend using [rbenv](https://github.com/rbenv/rbenv).
 
-This project has only been tested on ruby version 2.7.1p83.
+This project has been tested on ruby versions 2.5.1, 2.6.6 and 2.7.1.
 
 You will also need to install bundler with
 ```bash
@@ -51,9 +54,6 @@ bundle exec rspec
 
 ## Notes
 There is no AI, but the moves are shuffled in a semi random order. You can keep on pressing enter to execute random moves.
-
-## Thanks
-This project was part of the curriculum of [The Odin Project](https://www.theodinproject.com/courses/ruby-programming/lessons/ruby-final-project). I would like to extend a thank you to the wonderful community behind it.
 
 ## License
 This project is licensed under the MIT License.
