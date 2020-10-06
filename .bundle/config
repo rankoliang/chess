@@ -1,2 +1,4 @@
 ---
+BUNDLE_PATH: ".bundle"
+BUNDLE_CLEAN: "true"
 BUNDLE_WITHOUT: "production"

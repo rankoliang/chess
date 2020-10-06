@@ -1,15 +1,18 @@
+
 # Chess
 
 Command line application for playing chess implemented in ruby.
 
 ![Chess gameplay demo](images/chess_demo.gif)
 
+[![Run on Repl.it](https://repl.it/badge/github/rankoliang/chess)](https://chess.rankoliang.repl.run)
+
 ## Getting Started
 
 ### Prerequisites
 In order to run this project, you need to have ruby installed. I recommend using [rbenv](https://github.com/rbenv/rbenv).
 
-This project has only been tested on ruby version 2.7.1p83.
+This project has been tested on ruby versions 2.5.1, 2.6.6 and 2.7.1.
 
 You will also need to install bundler with
 ```bash

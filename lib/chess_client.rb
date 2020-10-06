@@ -147,7 +147,7 @@ class ChessClient
   end
 
   def generate_filtered_moves
-    spinner = TTY::Spinner.new(frames: repeat_frames(PIECE_ICONS, 15))
+    spinner = TTY::Spinner.new(frames: repeat_frames(PIECE_ICONS, 2))
     %i[white black].each do |player|
       filtered_moves[player] = check_filtered_moves(player, spinner)
     end
