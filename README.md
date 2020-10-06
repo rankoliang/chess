@@ -1,11 +1,11 @@
 
 # Chess
 
+[![Run on Repl.it](https://repl.it/badge/github/rankoliang/chess)](https://chess.rankoliang.repl.run)
+
 Command line application for playing chess implemented in ruby.
 
 ![Chess gameplay demo](images/chess_demo.gif)
-
-[![Run on Repl.it](https://repl.it/badge/github/rankoliang/chess)](https://chess.rankoliang.repl.run)
 
 ## Getting Started
 
