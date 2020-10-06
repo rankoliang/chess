@@ -55,7 +55,9 @@ module Pieces
       move_validator = MoveValidator.new(self, :PawnMove, &piece_getter)
       move_validator.validate(move_offsets)
                     .merge(
-                      valid_capture_moves(&piece_getter),
+                      valid_capture_moves(&piece_getter)
+                    )
+                    .merge(
                       valid_en_passant_moves(&piece_getter)
                     ) { |_, *moves| moves.min { |a, b| a[:level] <=> b[:level] } }
     end

@@ -43,7 +43,7 @@ class Chess
   end
 
   def pieces_by_player(player)
-    pieces.filter { |_, piece| piece.player == player }
+    pieces.select { |_, piece| piece.player == player }
   end
 
   def king_locations

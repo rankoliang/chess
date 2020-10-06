@@ -58,7 +58,7 @@ RSpec.describe MoveValidator do
       it 'returns all moves' do
         expect(valid_moves).to eq(
           move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-            { 'a5' => move(:blocked, 'a5', 1, piece) }, move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1, piece))
+            { 'a5' => move(:blocked, 'a5', 1, piece) }).merge(move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1, piece))
           )
         )
       end
@@ -90,7 +90,8 @@ RSpec.describe MoveValidator do
 
       let(:expected_moves) do
         move_hash_generate(%w[a2 a3 a4], unblocked_move).merge(
-          { 'a5' => move(:capture, 'a5', 0, piece) },
+          { 'a5' => move(:capture, 'a5', 0, piece) }
+        ).merge(
           move_hash_generate(%w[a6 a7 a8], move(:free, 'a5', 1, piece))
         )
       end
