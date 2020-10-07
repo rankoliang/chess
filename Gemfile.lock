@@ -6,6 +6,7 @@ GEM
     paint (2.2.0)
     pastel (0.8.0)
       tty-color (~> 0.5)
+    rake (13.0.1)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
       rspec-expectations (~> 3.9.0)
@@ -42,6 +43,7 @@ PLATFORMS
 
 DEPENDENCIES
   paint
+  rake
   rspec
   simplecov
   tty-cursor

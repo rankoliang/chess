@@ -5,3 +5,4 @@ gem 'simplecov', group: :development
 gem 'tty-cursor'
 gem 'tty-prompt'
 gem 'tty-spinner'
+gem 'rake'
