@@ -12,7 +12,7 @@ Command line application for playing chess implemented in ruby.
 ### Prerequisites
 In order to run this project, you need to have ruby installed. I recommend using [rbenv](https://github.com/rbenv/rbenv).
 
-This project has been tested on ruby versions 2.5.1, 2.6.6 and 2.7.1.
+This branch of the project has been tested only on ruby version 2.7.1.
 
 You will also need to install bundler with
 ```bash
